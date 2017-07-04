@@ -1,4 +1,5 @@
 #include "mfd.h"
+#include "mfd_thread_notify.h"
 
 MFD_CONTEXT MFDContext = { 0, };
 
@@ -118,6 +119,9 @@ FLTAPI DriverUnload(
 		FltUnregisterFilter(MFDContext.pMFDFilter);
 	}
 
+	MFDRemoveThreadNotifyRoutine(MFDThreadNotifyRoutine);
+	MFDDeleteAllThread();
+
 	return status;
 }
 
@@ -152,7 +156,7 @@ DriverEntry(
 		NULL,
 		pSD
 	);
-
+	
 	status = FltCreateCommunicationPort(
 		MFDContext.pMFDFilter,
 		&MFDContext.pServerPort,
@@ -175,6 +179,8 @@ DriverEntry(
 	{
 		goto _RET;
 	}
+
+	MFDSetThreadNotifyRoutine(MFDThreadNotifyRoutine);
 
 	return status;
 

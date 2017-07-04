@@ -21,6 +21,27 @@ extern "C" {
 	);
 
 	FLT_PREOP_CALLBACK_STATUS
+	FLTAPI MFDReadPreHandler(
+		_Inout_ PFLT_CALLBACK_DATA pData,
+		_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+		_Out_ PVOID *pCompletionContext
+	);
+
+	FLT_PREOP_CALLBACK_STATUS
+	FLTAPI MFDWritePreHandler(
+		_Inout_ PFLT_CALLBACK_DATA pData,
+		_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+		_Out_ PVOID *pCompletionContext
+	);
+
+	FLT_PREOP_CALLBACK_STATUS
+	FLTAPI MFDSetInformationPreHandler(
+		_Inout_ PFLT_CALLBACK_DATA pData,
+		_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+		_Out_ PVOID *pCompletionContext
+	);
+
+	FLT_PREOP_CALLBACK_STATUS
 	FLTAPI MFDDeviceControlPreHandler(
 		_Inout_ PFLT_CALLBACK_DATA pData,
 		_In_ PCFLT_RELATED_OBJECTS pFltObjects,

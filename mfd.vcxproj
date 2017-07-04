@@ -54,6 +54,7 @@
     <ClCompile Include="mfd.cpp" />
     <ClCompile Include="mfd_post_handler.cpp" />
     <ClCompile Include="mfd_pre_handler.cpp" />
+    <ClCompile Include="mfd_thread_notify.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{22A95BEF-63E5-4C36-B952-75F82255E4FE}</ProjectGuid>
@@ -261,6 +262,7 @@
     <ClInclude Include="mfd.h" />
     <ClInclude Include="mfd_post_handler.h" />
     <ClInclude Include="mfd_pre_handler.h" />
+    <ClInclude Include="mfd_thread_notify.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -95,7 +95,7 @@ CONST FLT_OPERATION_REGISTRATION Callbacks[] =
 	{
 		IRP_MJ_QUERY_INFORMATION,
 		0,
-		MFDPreHandler,
+		MFDPreHandler, 
 		MFDPostHandler
 	},
 	{

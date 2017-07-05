@@ -8,7 +8,7 @@ typedef struct _ACTIVE_THREAD_HEAD
 {
 	LIST_ENTRY ActiveThreadListHead;
 	BOOLEAN bAcquired;
-	ERESOURCE Resource;
+	KSPIN_LOCK SpinLock;
 	ULONG NumberOfActiveThread;
 	NPAGED_LOOKASIDE_LIST ThreadNPLookasideList;
 }ACTIVE_THREAD_HEAD, *PACTIVE_THREAD_HEAD;
@@ -33,11 +33,14 @@ extern "C" {
 
 	PACTIVE_THREAD
 	MFDAcquireActiveThread(
-		_In_ PETHREAD DeleteThread
+		_In_ PETHREAD DeleteThread,
+		_In_ PKLOCK_QUEUE_HANDLE pLockHandle
 	);
 
 	VOID
-	MFDReleaseActiveThread(VOID);	
+	MFDReleaseActiveThread(
+		_In_ PKLOCK_QUEUE_HANDLE pLockHandle
+	);
 
 	PACTIVE_THREAD
 	MFDDeleteActiveThread(

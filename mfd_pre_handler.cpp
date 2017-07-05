@@ -1,4 +1,7 @@
 #include "mfd_pre_handler.h"
+#include "mfd_thread_notify.h"
+
+extern ACTIVE_THREAD_HEAD ActiveThreadHead;
 
 FLT_PREOP_CALLBACK_STATUS
 FLTAPI MFDCreatePreHandler(

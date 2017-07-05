@@ -7,6 +7,7 @@
 typedef struct _ACTIVE_THREAD_HEAD
 {
 	LIST_ENTRY ActiveThreadListHead;
+	BOOLEAN bAcquired;
 	ERESOURCE Resource;
 	ULONG NumberOfActiveThread;
 	NPAGED_LOOKASIDE_LIST ThreadNPLookasideList;
@@ -29,6 +30,14 @@ extern "C" {
 	MFDInsertActiveThread(
 		_In_ PACTIVE_THREAD pActiveThread
 	);
+
+	PACTIVE_THREAD
+	MFDAcquireActiveThread(
+		_In_ PETHREAD DeleteThread
+	);
+
+	VOID
+	MFDReleaseActiveThread(VOID);	
 
 	PACTIVE_THREAD
 	MFDDeleteActiveThread(

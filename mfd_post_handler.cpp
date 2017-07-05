@@ -1,4 +1,7 @@
 #include "mfd_post_handler.h"
+#include "mfd_thread_notify.h"
+
+extern ACTIVE_THREAD_HEAD ActiveThreadHead;
 
 FLT_POSTOP_CALLBACK_STATUS
 FLTAPI MFDCreatePostHandler(
@@ -8,7 +11,7 @@ FLTAPI MFDCreatePostHandler(
 	_In_ FLT_POST_OPERATION_FLAGS Flags
 )
 {
-	FLT_POSTOP_CALLBACK_STATUS fltRetStatus = FLT_POSTOP_FINISHED_PROCESSING;
+	FLT_POSTOP_CALLBACK_STATUS fltRetStatus = FLT_POSTOP_FINISHED_PROCESSING;	
 
 	UNREFERENCED_PARAMETER(pData);
 	UNREFERENCED_PARAMETER(pFltObjects);

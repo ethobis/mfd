@@ -20,6 +20,54 @@ MFDInsertActiveThread(
 }
 
 PACTIVE_THREAD
+MFDAcquireActiveThread(
+	_In_ PETHREAD DeleteThread
+)
+{
+	PLIST_ENTRY pThreadListEntry = NULL;
+	PACTIVE_THREAD pSearchActiveThread = NULL;
+	PACTIVE_THREAD pRetActiveThread = NULL;
+
+	KeEnterCriticalRegion();
+	ExAcquireResourceExclusiveLite(&ActiveThreadHead.Resource, TRUE);
+
+	if (IsListEmpty(&ActiveThreadHead.ActiveThreadListHead))
+	{
+		ExReleaseResourceLite(&ActiveThreadHead.Resource);
+		KeLeaveCriticalRegion();
+		return NULL;
+	}
+
+	for (pThreadListEntry = ActiveThreadHead.ActiveThreadListHead.Flink;
+		pThreadListEntry != &ActiveThreadHead.ActiveThreadListHead; pThreadListEntry = pThreadListEntry->Flink)
+	{
+		pSearchActiveThread = CONTAINING_RECORD(pThreadListEntry, ACTIVE_THREAD, ActiveThreadList);
+
+		if (pSearchActiveThread->Thread == DeleteThread)
+		{
+			pRetActiveThread = pSearchActiveThread;
+			ActiveThreadHead.bAcquired = TRUE;
+			break;
+		}
+	}
+
+	return pRetActiveThread;
+}
+
+VOID
+MFDReleaseActiveThread(VOID)
+{
+	if (ActiveThreadHead.bAcquired)
+	{
+		ActiveThreadHead.bAcquired = FALSE;
+		ExReleaseResourceLite(&ActiveThreadHead.Resource);
+		KeLeaveCriticalRegion();
+	}
+	
+	return;
+}
+
+PACTIVE_THREAD
 MFDDeleteActiveThread(
 	_In_ PETHREAD DeleteThread
 )

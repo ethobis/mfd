@@ -20,6 +20,12 @@ typedef struct _ACTIVE_THREAD
 	/*
 		Add-Context	
 	*/
+	PFILE_OBJECT pSourceFileObject;
+	ULONG ulSourceFileTotalOffset;
+	WCHAR wchSourceFilePath[512];
+	PFILE_OBJECT pDestinationFileObject;
+	ULONG ulDestinationFileTotalOffset;
+	WCHAR wchDestinationFilePath[512];
 }ACTIVE_THREAD, *PACTIVE_THREAD;
 
 #ifdef __cplusplus
@@ -38,9 +44,7 @@ extern "C" {
 	);
 
 	VOID
-	MFDReleaseActiveThread(
-		_In_ PKLOCK_QUEUE_HANDLE pLockHandle
-	);
+	MFDReleaseActiveThread(VOID);
 
 	PACTIVE_THREAD
 	MFDDeleteActiveThread(

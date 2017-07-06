@@ -7,14 +7,14 @@ MFDInsertActiveThread(
 	_In_ PACTIVE_THREAD pActiveThread
 )
 {
-	KLOCK_QUEUE_HANDLE hLockHandle = { 0, };
-
-	KeAcquireInStackQueuedSpinLock(&ActiveThreadHead.SpinLock, &hLockHandle);
+	KeEnterCriticalRegion();
+	ExAcquireResourceExclusiveLite(&ActiveThreadHead.Resource, TRUE);
 
 	InsertTailList(&ActiveThreadHead.ActiveThreadListHead, &pActiveThread->ActiveThreadList);
 	ActiveThreadHead.NumberOfActiveThread++;
 
-	KeReleaseInStackQueuedSpinLock(&hLockHandle);
+	ExReleaseResourceLite(&ActiveThreadHead.Resource);
+	KeLeaveCriticalRegion();
 
 	return;
 }
@@ -29,7 +29,10 @@ MFDAcquireActiveThread(
 	PACTIVE_THREAD pSearchActiveThread = NULL;
 	PACTIVE_THREAD pRetActiveThread = NULL;
 
-	KeAcquireInStackQueuedSpinLock(&ActiveThreadHead.SpinLock, pLockHandle);
+	UNREFERENCED_PARAMETER(pLockHandle);
+
+	KeEnterCriticalRegion();
+	ExAcquireResourceExclusiveLite(&ActiveThreadHead.Resource, TRUE);
 
 	if (IsListEmpty(&ActiveThreadHead.ActiveThreadListHead))
 	{
@@ -52,21 +55,21 @@ MFDAcquireActiveThread(
 _RET:
 	if (NULL == pRetActiveThread)
 	{
-		KeReleaseInStackQueuedSpinLock(pLockHandle);
+		ExReleaseResourceLite(&ActiveThreadHead.Resource);
+		KeLeaveCriticalRegion();
 	}
 
 	return pRetActiveThread;
 }
 
 VOID
-MFDReleaseActiveThread(
-	_In_ PKLOCK_QUEUE_HANDLE pLockHandle
-)
+MFDReleaseActiveThread(VOID)
 {
 	if (ActiveThreadHead.bAcquired)
 	{
 		ActiveThreadHead.bAcquired = FALSE;
-		KeReleaseInStackQueuedSpinLock(pLockHandle);
+		ExReleaseResourceLite(&ActiveThreadHead.Resource);
+		KeLeaveCriticalRegion();
 	}
 	
 	return;
@@ -80,9 +83,9 @@ MFDDeleteActiveThread(
 	PLIST_ENTRY pThreadListEntry = NULL;
 	PACTIVE_THREAD pSearchActiveThread = NULL;
 	PACTIVE_THREAD pRetActiveThread = NULL;
-	KLOCK_QUEUE_HANDLE hLockHandle = { 0, };
 
-	KeAcquireInStackQueuedSpinLock(&ActiveThreadHead.SpinLock, &hLockHandle);
+	KeEnterCriticalRegion();
+	ExAcquireResourceExclusiveLite(&ActiveThreadHead.Resource, TRUE);
 
 	if (IsListEmpty(&ActiveThreadHead.ActiveThreadListHead))
 	{
@@ -105,7 +108,8 @@ MFDDeleteActiveThread(
 	}
 
 _RET:
-	KeReleaseInStackQueuedSpinLock(&hLockHandle);
+	ExReleaseResourceLite(&ActiveThreadHead.Resource);
+	KeLeaveCriticalRegion();
 	return pRetActiveThread;
 }
 
@@ -114,9 +118,9 @@ MFDDeleteAllThread(VOID)
 {
 	PLIST_ENTRY pDeleteActiveThreadList = NULL;
 	PACTIVE_THREAD pDeleteActiveThread = NULL;
-	KLOCK_QUEUE_HANDLE hLockHandle = { 0, };
 
-	KeAcquireInStackQueuedSpinLock(&ActiveThreadHead.SpinLock, &hLockHandle);
+	KeEnterCriticalRegion();
+	ExAcquireResourceExclusiveLite(&ActiveThreadHead.Resource, TRUE);
 
 	if (IsListEmpty(&ActiveThreadHead.ActiveThreadListHead))
 	{
@@ -141,7 +145,8 @@ MFDDeleteAllThread(VOID)
 	} while (pDeleteActiveThreadList && (pDeleteActiveThreadList != &ActiveThreadHead.ActiveThreadListHead));
 
 _RET:
-	KeReleaseInStackQueuedSpinLock(&hLockHandle);
+	ExReleaseResourceLite(&ActiveThreadHead.Resource);
+	KeLeaveCriticalRegion();
 	return ;
 }
 
@@ -213,7 +218,7 @@ MFDSetThreadNotifyRoutine(
 	}
 
 	InitializeListHead(&ActiveThreadHead.ActiveThreadListHead);
-	KeInitializeSpinLock(&ActiveThreadHead.SpinLock);
+	ExInitializeResourceLite(&ActiveThreadHead.Resource);
 	ExInitializeNPagedLookasideList(&ActiveThreadHead.ThreadNPLookasideList, NULL, NULL, 0, sizeof(ACTIVE_THREAD), 0, 0);
 
 _RET:
@@ -239,6 +244,7 @@ MFDRemoveThreadNotifyRoutine(
 		goto _RET;
 	}
 
+	ExDeleteResourceLite(&ActiveThreadHead.Resource);
 	ExDeleteNPagedLookasideList(&ActiveThreadHead.ThreadNPLookasideList);
 
 _RET:

@@ -8,7 +8,7 @@ typedef struct _ACTIVE_THREAD_HEAD
 {
 	LIST_ENTRY ActiveThreadListHead;
 	BOOLEAN bAcquired;
-	KSPIN_LOCK SpinLock;
+	ERESOURCE Resource;
 	ULONG NumberOfActiveThread;
 	NPAGED_LOOKASIDE_LIST ThreadNPLookasideList;
 }ACTIVE_THREAD_HEAD, *PACTIVE_THREAD_HEAD;

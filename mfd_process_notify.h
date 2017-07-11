@@ -16,7 +16,7 @@ typedef struct _ACTIVE_PROCESS_HEAD
 typedef struct _ACTIVE_PROCESS
 {
 	PEPROCESS Process;
-	LIST_ENTRY ActiveThreadList;
+	LIST_ENTRY ActiveProcessList;
 	/*
 		Add-Context
 	*/

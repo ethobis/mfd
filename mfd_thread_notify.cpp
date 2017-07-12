@@ -21,15 +21,12 @@ MFDInsertActiveThread(
 
 PACTIVE_THREAD
 MFDAcquireActiveThread(
-	_In_ PETHREAD DeleteThread,
-	_In_ PKLOCK_QUEUE_HANDLE pLockHandle
+	_In_ PETHREAD pActiveThread
 )
 {
 	PLIST_ENTRY pThreadListEntry = NULL;
 	PACTIVE_THREAD pSearchActiveThread = NULL;
 	PACTIVE_THREAD pRetActiveThread = NULL;
-
-	UNREFERENCED_PARAMETER(pLockHandle);
 
 	KeEnterCriticalRegion();
 	ExAcquireResourceExclusiveLite(&ActiveThreadHead.Resource, TRUE);
@@ -44,7 +41,7 @@ MFDAcquireActiveThread(
 	{
 		pSearchActiveThread = CONTAINING_RECORD(pThreadListEntry, ACTIVE_THREAD, ActiveThreadList);
 
-		if (pSearchActiveThread->Thread == DeleteThread)
+		if (pSearchActiveThread->Thread == pActiveThread)
 		{
 			pRetActiveThread = pSearchActiveThread;
 			ActiveThreadHead.bAcquired = TRUE;
@@ -77,7 +74,7 @@ MFDReleaseActiveThread(VOID)
 
 PACTIVE_THREAD
 MFDDeleteActiveThread(
-	_In_ PETHREAD DeleteThread
+	_In_ PETHREAD pDeleteThread
 )
 {
 	PLIST_ENTRY pThreadListEntry = NULL;
@@ -97,7 +94,7 @@ MFDDeleteActiveThread(
 	{
 		pSearchActiveThread = CONTAINING_RECORD(pThreadListEntry, ACTIVE_THREAD, ActiveThreadList);
 
-		if (pSearchActiveThread->Thread == DeleteThread)
+		if (pSearchActiveThread->Thread == pDeleteThread)
 		{
 			(pThreadListEntry->Blink)->Flink = pThreadListEntry->Flink;
 			(pThreadListEntry->Flink)->Blink = pThreadListEntry->Blink;
@@ -152,25 +149,25 @@ _RET:
 
 VOID
 MFDThreadNotifyRoutine(
-	_In_ HANDLE ProcessId,
-	_In_ HANDLE ThreadId,
-	_In_ BOOLEAN Create
+	_In_ HANDLE hProcessId,
+	_In_ HANDLE hThreadId,
+	_In_ BOOLEAN bCreate
 )
 {
 	NTSTATUS status = STATUS_SUCCESS;
 	PACTIVE_THREAD pActiveThread = NULL;
 	PETHREAD pThreadLookupByTid = NULL;
 
-	UNREFERENCED_PARAMETER(ProcessId);
+	UNREFERENCED_PARAMETER(hProcessId);
 
-	status = PsLookupThreadByThreadId(ThreadId, &pThreadLookupByTid);
+	status = PsLookupThreadByThreadId(hThreadId, &pThreadLookupByTid);
 
 	if (!NT_SUCCESS(status))
 	{
 		goto _RET;
 	}
 
-	if (Create)
+	if (bCreate)
 	{
 		pActiveThread = (PACTIVE_THREAD)ExAllocateFromNPagedLookasideList(&ActiveThreadHead.ThreadNPLookasideList);
 

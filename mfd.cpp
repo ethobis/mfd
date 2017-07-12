@@ -1,5 +1,6 @@
 #include "mfd.h"
 #include "mfd_thread_notify.h"
+#include "mfd_process_notify.h"
 
 MFD_CONTEXT MFDContext = { 0, };
 
@@ -119,6 +120,9 @@ FLTAPI DriverUnload(
 		FltUnregisterFilter(MFDContext.pMFDFilter);
 	}
 
+	MFDRemoveProcessNotifyRoutine(MFDProcessNotifyRoutine);
+	MFDDeleteAllProcess();
+
 	MFDRemoveThreadNotifyRoutine(MFDThreadNotifyRoutine);
 	MFDDeleteAllThread();
 
@@ -181,6 +185,7 @@ DriverEntry(
 	}
 
 	MFDSetThreadNotifyRoutine(MFDThreadNotifyRoutine);
+	MFDSetProcessNotifyRoutine(MFDProcessNotifyRoutine);
 
 	return status;
 

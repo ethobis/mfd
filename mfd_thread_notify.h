@@ -33,8 +33,7 @@ extern "C" {
 
 	PACTIVE_THREAD
 	MFDAcquireActiveThread(
-		_In_ PETHREAD DeleteThread,
-		_In_ PKLOCK_QUEUE_HANDLE pLockHandle
+		_In_ PETHREAD pActiveThread
 	);
 
 	VOID
@@ -42,7 +41,7 @@ extern "C" {
 
 	PACTIVE_THREAD
 	MFDDeleteActiveThread(
-		_In_ PETHREAD DeleteThread
+		_In_ PETHREAD pDeleteThread
 	);
 
 	VOID
@@ -50,9 +49,9 @@ extern "C" {
 
 	VOID
 	MFDThreadNotifyRoutine(
-		_In_ HANDLE ProcessId,
-		_In_ HANDLE ThreadId,
-		_In_ BOOLEAN Create
+		_In_ HANDLE hProcessId,
+		_In_ HANDLE hThreadId,
+		_In_ BOOLEAN bCreate
 	);
 
 	NTSTATUS

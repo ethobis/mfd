@@ -3,7 +3,7 @@
 #include "mfd_process_notify.h"
 #include "mfd_image_notify.h"
 
-MFD_CONTEXT MFDContext = { 0, };
+MFD_FILTER_INFO MFDFilterInfo = { 0, };
 
 NTSTATUS
 FLTAPI MFDPortMessage(
@@ -106,19 +106,19 @@ FLTAPI DriverUnload(
 
 	UNREFERENCED_PARAMETER(Flags);
 
-	if (NULL != MFDContext.pClientPort)
+	if (NULL != MFDFilterInfo.pClientPort)
 	{
-		FltCloseClientPort(MFDContext.pMFDFilter, &MFDContext.pClientPort);
+		FltCloseClientPort(MFDFilterInfo.pMFDFilter, &MFDFilterInfo.pClientPort);
 	}
 
-	if (NULL != MFDContext.pServerPort)
+	if (NULL != MFDFilterInfo.pServerPort)
 	{
-		FltCloseCommunicationPort(MFDContext.pServerPort);
+		FltCloseCommunicationPort(MFDFilterInfo.pServerPort);
 	}
 
-	if (NULL != MFDContext.pMFDFilter)
+	if (NULL != MFDFilterInfo.pMFDFilter)
 	{
-		FltUnregisterFilter(MFDContext.pMFDFilter);
+		FltUnregisterFilter(MFDFilterInfo.pMFDFilter);
 	}
 
 	MFDRemoveImageNotifyRoutine(MFDLoadImageNotifyRoutine);
@@ -148,7 +148,7 @@ DriverEntry(
 
 	PAGED_CODE();
 
-	status = FltRegisterFilter(pDriverObject, &FilterRegistration, &MFDContext.pMFDFilter);
+	status = FltRegisterFilter(pDriverObject, &FilterRegistration, &MFDFilterInfo.pMFDFilter);
 
 	if (!NT_SUCCESS(status))
 	{
@@ -165,8 +165,8 @@ DriverEntry(
 	);
 	
 	status = FltCreateCommunicationPort(
-		MFDContext.pMFDFilter,
-		&MFDContext.pServerPort,
+		MFDFilterInfo.pMFDFilter,
+		&MFDFilterInfo.pServerPort,
 		&oa,
 		NULL,
 		(PFLT_CONNECT_NOTIFY)MFDPortConnect,
@@ -180,7 +180,7 @@ DriverEntry(
 		goto _RET;
 	}
 
-	status = FltStartFiltering(MFDContext.pMFDFilter);
+	status = FltStartFiltering(MFDFilterInfo.pMFDFilter);
 
 	if (!NT_SUCCESS(status))
 	{
@@ -194,9 +194,9 @@ DriverEntry(
 	return status;
 
 _RET:
-	if (NULL != MFDContext.pServerPort)
+	if (NULL != MFDFilterInfo.pServerPort)
 	{
-		FltCloseCommunicationPort(MFDContext.pServerPort);
+		FltCloseCommunicationPort(MFDFilterInfo.pServerPort);
 	}
 
 	if (NULL != pSD)
@@ -204,9 +204,9 @@ _RET:
 		FltFreeSecurityDescriptor(pSD);
 	}
 
-	if (NULL != MFDContext.pMFDFilter)
+	if (NULL != MFDFilterInfo.pMFDFilter)
 	{
-		FltUnregisterFilter(MFDContext.pMFDFilter);
+		FltUnregisterFilter(MFDFilterInfo.pMFDFilter);
 	}
 
 	return status;

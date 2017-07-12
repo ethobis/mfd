@@ -7,6 +7,10 @@ MFDLoadImageNotifyRoutine(
 	_In_ PIMAGE_INFO pImageInfo
 )
 {
+	UNREFERENCED_PARAMETER(puniFullImageName);
+	UNREFERENCED_PARAMETER(hProcessId);
+	UNREFERENCED_PARAMETER(pImageInfo);
+
 	return;
 }
 

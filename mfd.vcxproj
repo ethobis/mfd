@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mfd.cpp" />
+    <ClCompile Include="mfd_context.cpp" />
     <ClCompile Include="mfd_image_notify.cpp" />
     <ClCompile Include="mfd_post_handler.cpp" />
     <ClCompile Include="mfd_pre_handler.cpp" />
@@ -262,6 +263,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mfd.h" />
+    <ClInclude Include="mfd_context.h" />
     <ClInclude Include="mfd_image_notify.h" />
     <ClInclude Include="mfd_post_handler.h" />
     <ClInclude Include="mfd_pre_handler.h" />

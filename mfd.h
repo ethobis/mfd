@@ -11,6 +11,7 @@
 
 #include "mfd_pre_handler.h"
 #include "mfd_post_handler.h"
+#include "mfd_context.h"
 
 #define FLT_FILTER_NAME L"\\mfd"
 // DbgPrintEx(DPFLTR_DEFAULT_ID, DPFLTR_ERROR_LEVEL, "DbgPrintEx\n");
@@ -149,36 +150,6 @@ CONST FLT_OPERATION_REGISTRATION Callbacks[] =
 	{ IRP_MJ_OPERATION_END }
 };
 
-typedef struct _MFD_VOLUME_CONTEXT
-{
-	PVOID pvReserved;
-}MFD_VOLUME_CONTEXT, *PMFD_VOLUME_CONTEXT;
-
-typedef struct _PMFD_INSTANCE_CONTEXT
-{
-	PVOID pvReserved;
-}MFD_INSTANCE_CONTEXT, *PMFD_INSTANCE_CONTEXT;
-
-typedef struct _MFD_FILE_CONTEXT
-{
-	PVOID pvReserved;
-}MFD_FILE_CONTEXT, *PMFD_FILE_CONTEXT;
-
-typedef struct _MFD_STREAM_CONTEXT
-{
-	PVOID pvReserved;
-}MFD_STREAM_CONTEXT, *PMFD_STREAM_CONTEXT;
-
-typedef struct _MFD_STREAMHANDLE_CONTEXT
-{
-	PVOID pvReserved;
-}MFD_STREAMHANDLE_CONTEXT, *PMFD_STREAMHANDLE_CONTEXT;
-
-typedef struct _MFD_TRANSACTION_CONTEXT
-{
-	PVOID pvReserved;
-}MFD_TRANSACTION_CONTEXT, *PMFD_TRANSACTION_CONTEXT;
-
 FLT_CONTEXT_REGISTRATION FilterContextRegistration[] =
 {
 	{
@@ -259,11 +230,11 @@ FLT_REGISTRATION FilterRegistration =
 	NULL
 };
 
-typedef struct _MFD_CONTEXT
+typedef struct _MFD_FILTER_INFO
 {
 	PFLT_FILTER pMFDFilter;
 	PFLT_PORT pServerPort;
 	PFLT_PORT pClientPort;
-}MFD_CONTEXT, *PMFD_CONTEXT;
+}MFD_FILTER_INFO, *PMFD_FILTER_INFO;
 
 #endif

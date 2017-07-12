@@ -1,6 +1,7 @@
 #include "mfd.h"
 #include "mfd_thread_notify.h"
 #include "mfd_process_notify.h"
+#include "mfd_image_notify.h"
 
 MFD_CONTEXT MFDContext = { 0, };
 
@@ -120,6 +121,8 @@ FLTAPI DriverUnload(
 		FltUnregisterFilter(MFDContext.pMFDFilter);
 	}
 
+	MFDRemoveImageNotifyRoutine(MFDLoadImageNotifyRoutine);
+
 	MFDRemoveProcessNotifyRoutine(MFDProcessNotifyRoutine);
 	MFDDeleteAllProcess();
 
@@ -186,6 +189,7 @@ DriverEntry(
 
 	MFDSetThreadNotifyRoutine(MFDThreadNotifyRoutine);
 	MFDSetProcessNotifyRoutine(MFDProcessNotifyRoutine);
+	MFDSetImageNotifyRoutine(MFDLoadImageNotifyRoutine);
 
 	return status;
 

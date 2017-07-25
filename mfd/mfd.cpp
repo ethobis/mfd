@@ -48,6 +48,8 @@ FLTAPI MFDPortConnect(
 
 	PAGED_CODE();
 
+	MFDFilterInfo.pClientPort = pClientPort;
+
 	return status;
 }
 
@@ -59,6 +61,11 @@ FLTAPI MFDPortDisconnect(
 	UNREFERENCED_PARAMETER(pvConnectionCookie);
 
 	PAGED_CODE();
+
+	if (NULL != MFDFilterInfo.pClientPort)
+	{
+		FltCloseClientPort(MFDFilterInfo.pMFDFilter, &MFDFilterInfo.pClientPort);
+	}
 
 	return;
 }
@@ -106,11 +113,6 @@ FLTAPI DriverUnload(
 
 	UNREFERENCED_PARAMETER(Flags);
 
-	if (NULL != MFDFilterInfo.pClientPort)
-	{
-		FltCloseClientPort(MFDFilterInfo.pMFDFilter, &MFDFilterInfo.pClientPort);
-	}
-
 	if (NULL != MFDFilterInfo.pServerPort)
 	{
 		FltCloseCommunicationPort(MFDFilterInfo.pServerPort);
@@ -155,6 +157,13 @@ DriverEntry(
 		goto _RET;
 	}
 
+	status = FltBuildDefaultSecurityDescriptor(&pSD, FLT_PORT_ALL_ACCESS);
+
+	if (!NT_SUCCESS(status))
+	{
+		goto _RET;
+	}
+
 	RtlInitUnicodeString(&uniPortName, FLT_FILTER_NAME);
 	InitializeObjectAttributes(
 		&oa,
@@ -180,6 +189,8 @@ DriverEntry(
 		goto _RET;
 	}
 
+	FltFreeSecurityDescriptor(pSD);
+
 	status = FltStartFiltering(MFDFilterInfo.pMFDFilter);
 
 	if (!NT_SUCCESS(status))
@@ -197,11 +208,6 @@ _RET:
 	if (NULL != MFDFilterInfo.pServerPort)
 	{
 		FltCloseCommunicationPort(MFDFilterInfo.pServerPort);
-	}
-
-	if (NULL != pSD)
-	{
-		FltFreeSecurityDescriptor(pSD);
 	}
 
 	if (NULL != MFDFilterInfo.pMFDFilter)

@@ -227,6 +227,10 @@ FLT_REGISTRATION FilterRegistration =
 	NULL,
 	MFDInstanceTeardown,
 	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 	NULL
 };
 

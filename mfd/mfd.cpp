@@ -184,12 +184,12 @@ DriverEntry(
 		1
 	);
 
+	FltFreeSecurityDescriptor(pSD);
+
 	if (!NT_SUCCESS(status))
 	{
 		goto _RET;
-	}
-
-	FltFreeSecurityDescriptor(pSD);
+	}	
 
 	status = FltStartFiltering(MFDFilterInfo.pMFDFilter);
 

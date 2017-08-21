@@ -44,6 +44,14 @@ extern "C" {
 		_In_opt_ PVOID pCompletionContext,
 		_In_ FLT_POST_OPERATION_FLAGS Flags
 	);
+
+	FLT_POSTOP_CALLBACK_STATUS
+		FLTAPI MFDDirectoryControlPostHandler(
+		_Inout_ PFLT_CALLBACK_DATA pData,
+		_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+		_In_opt_ PVOID pCompletionContext,
+		_In_ FLT_POST_OPERATION_FLAGS Flags
+	);
 	
 	FLT_POSTOP_CALLBACK_STATUS
 	FLTAPI MFDDeviceControlPostHandler(

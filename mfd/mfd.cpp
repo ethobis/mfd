@@ -1,4 +1,5 @@
 #include "mfd.h"
+#include "mfd_filesystem.h"
 #include "mfd_thread_notify.h"
 #include "mfd_process_notify.h"
 #include "mfd_image_notify.h"

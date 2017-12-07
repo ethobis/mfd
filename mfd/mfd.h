@@ -8,13 +8,10 @@
 #include <fltKernel.h>
 #pragma warning(pop)
 #pragma optimize("", off)
-
 #include "mfd_pre_handler.h"
 #include "mfd_post_handler.h"
 #include "mfd_context.h"
-
-#define FLT_FILTER_NAME L"\\mfd"
-// DbgPrintEx(DPFLTR_DEFAULT_ID, DPFLTR_ERROR_LEVEL, "DbgPrintEx\n");
+#include "..\mfd-common\mfd_common.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -153,36 +150,6 @@ CONST FLT_OPERATION_REGISTRATION Callbacks[] =
 FLT_CONTEXT_REGISTRATION FilterContextRegistration[] =
 {
 	{
-		FLT_VOLUME_CONTEXT,
-		0,
-		NULL,
-		sizeof(MFD_VOLUME_CONTEXT),
-		'MFDV',
-		NULL,
-		NULL,
-		NULL
-	},
-	{
-		FLT_INSTANCE_CONTEXT,
-		0,
-		NULL,
-		sizeof(MFD_INSTANCE_CONTEXT),
-		'MFDI',
-		NULL,
-		NULL,
-		NULL
-	},
-	{
-		FLT_FILE_CONTEXT,
-		0,
-		NULL,
-		sizeof(MFD_FILE_CONTEXT),
-		'MFDF',
-		NULL,
-		NULL,
-		NULL
-	},
-	{
 		FLT_STREAM_CONTEXT,
 		0,
 		NULL,
@@ -198,16 +165,6 @@ FLT_CONTEXT_REGISTRATION FilterContextRegistration[] =
 		NULL,
 		sizeof(MFD_STREAMHANDLE_CONTEXT),
 		'MFDH',
-		NULL,
-		NULL,
-		NULL
-	},
-	{
-		FLT_TRANSACTION_CONTEXT,
-		0,
-		NULL,
-		sizeof(MFD_TRANSACTION_CONTEXT),
-		'MFDT',
 		NULL,
 		NULL,
 		NULL
@@ -233,12 +190,5 @@ FLT_REGISTRATION FilterRegistration =
 	NULL,
 	NULL
 };
-
-typedef struct _MFD_FILTER_INFO
-{
-	PFLT_FILTER pMFDFilter;
-	PFLT_PORT pServerPort;
-	PFLT_PORT pClientPort;
-}MFD_FILTER_INFO, *PMFD_FILTER_INFO;
 
 #endif

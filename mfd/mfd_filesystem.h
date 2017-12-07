@@ -14,10 +14,29 @@
 extern "C" {
 #endif
 
-VOID
-GetEnumerateVolume(
-	_In_ PFLT_FILTER pFltFilter
-);
+	ULONG
+	GetVolumeDeviceType(
+		_In_ PCFLT_RELATED_OBJECTS pFltObjects
+	);
+
+	BOOLEAN
+	GetVolumeDeviceName(
+		_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+		_Out_ PWCHAR pwchOutVolumeDeviceName
+	);
+
+	BOOLEAN
+	GetFilePath(
+		_In_ PFLT_CALLBACK_DATA pData,
+		_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+		_Out_ PWCHAR* pwchOutFilePath,
+		_In_ BOOLEAN bWithVolumeDosName
+	);
+
+	VOID
+	GetEnumerateVolume(
+		_In_ PFLT_FILTER pFltFilter
+	);
 
 #ifdef __cplusplus
 }

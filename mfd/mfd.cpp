@@ -1,10 +1,11 @@
 #include "mfd.h"
-#include "mfd_filesystem.h"
 #include "mfd_thread_notify.h"
 #include "mfd_process_notify.h"
 #include "mfd_image_notify.h"
 
-MFD_FILTER_INFO MFDFilterInfo = { 0, };
+#include "mfd_filesystem.h"
+
+FILTER_INFO g_FilterInfo = { 0, };
 
 NTSTATUS
 FLTAPI MFDPortMessage(
@@ -49,7 +50,7 @@ FLTAPI MFDPortConnect(
 
 	PAGED_CODE();
 
-	MFDFilterInfo.pClientPort = pClientPort;
+	g_FilterInfo.pClientPort = pClientPort;
 
 	return status;
 }
@@ -63,9 +64,9 @@ FLTAPI MFDPortDisconnect(
 
 	PAGED_CODE();
 
-	if (NULL != MFDFilterInfo.pClientPort)
+	if (NULL != g_FilterInfo.pClientPort)
 	{
-		FltCloseClientPort(MFDFilterInfo.pMFDFilter, &MFDFilterInfo.pClientPort);
+		FltCloseClientPort(g_FilterInfo.pFilter, &g_FilterInfo.pClientPort);
 	}
 
 	return;
@@ -114,14 +115,14 @@ FLTAPI DriverUnload(
 
 	UNREFERENCED_PARAMETER(Flags);
 
-	if (NULL != MFDFilterInfo.pServerPort)
+	if (NULL != g_FilterInfo.pServerPort)
 	{
-		FltCloseCommunicationPort(MFDFilterInfo.pServerPort);
+		FltCloseCommunicationPort(g_FilterInfo.pServerPort);
 	}
 
-	if (NULL != MFDFilterInfo.pMFDFilter)
+	if (NULL != g_FilterInfo.pFilter)
 	{
-		FltUnregisterFilter(MFDFilterInfo.pMFDFilter);
+		FltUnregisterFilter(g_FilterInfo.pFilter);
 	}
 
 	MFDRemoveImageNotifyRoutine(MFDLoadImageNotifyRoutine);
@@ -131,6 +132,8 @@ FLTAPI DriverUnload(
 
 	MFDRemoveThreadNotifyRoutine(MFDThreadNotifyRoutine);
 	MFDDeleteAllThread();
+
+	DbgPrintEx(DPFLTR_DEFAULT_ID, DPFLTR_ERROR_LEVEL, "[DRIVER UNLOAD] :: SUCCESS!\n");
 
 	return status;
 }
@@ -151,7 +154,7 @@ DriverEntry(
 
 	PAGED_CODE();
 
-	status = FltRegisterFilter(pDriverObject, &FilterRegistration, &MFDFilterInfo.pMFDFilter);
+	status = FltRegisterFilter(pDriverObject, &FilterRegistration, &g_FilterInfo.pFilter);
 
 	if (!NT_SUCCESS(status))
 	{
@@ -175,8 +178,8 @@ DriverEntry(
 	);
 	
 	status = FltCreateCommunicationPort(
-		MFDFilterInfo.pMFDFilter,
-		&MFDFilterInfo.pServerPort,
+		g_FilterInfo.pFilter,
+		&g_FilterInfo.pServerPort,
 		&oa,
 		NULL,
 		(PFLT_CONNECT_NOTIFY)MFDPortConnect,
@@ -192,7 +195,7 @@ DriverEntry(
 		goto _RET;
 	}	
 
-	status = FltStartFiltering(MFDFilterInfo.pMFDFilter);
+	status = FltStartFiltering(g_FilterInfo.pFilter);
 
 	if (!NT_SUCCESS(status))
 	{
@@ -203,17 +206,19 @@ DriverEntry(
 	MFDSetProcessNotifyRoutine(MFDProcessNotifyRoutine);
 	MFDSetImageNotifyRoutine(MFDLoadImageNotifyRoutine);
 
+	DbgPrintEx(DPFLTR_DEFAULT_ID, DPFLTR_ERROR_LEVEL, "[DRIVER LOAD] :: SUCCESS!\n");
+
 	return status;
 
 _RET:
-	if (NULL != MFDFilterInfo.pServerPort)
+	if (NULL != g_FilterInfo.pServerPort)
 	{
-		FltCloseCommunicationPort(MFDFilterInfo.pServerPort);
+		FltCloseCommunicationPort(g_FilterInfo.pServerPort);
 	}
 
-	if (NULL != MFDFilterInfo.pMFDFilter)
+	if (NULL != g_FilterInfo.pFilter)
 	{
-		FltUnregisterFilter(MFDFilterInfo.pMFDFilter);
+		FltUnregisterFilter(g_FilterInfo.pFilter);
 	}
 
 	return status;

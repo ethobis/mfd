@@ -155,7 +155,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\mfd-common\mfd_common.cpp" />
     <ClCompile Include="mfd-user.cpp" />
   </ItemGroup>
   <ItemGroup>

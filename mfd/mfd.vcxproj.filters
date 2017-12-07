@@ -46,9 +46,6 @@
     <ClCompile Include="mfd_filesystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\mfd-common\mfd_common.cpp">
-      <Filter>Common Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mfd.h">

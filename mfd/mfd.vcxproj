@@ -289,7 +289,6 @@
     <FilesToPackage Include="@(Inf->'%(CopyOutput)')" Condition="'@(Inf)'!=''" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\mfd-common\mfd_common.cpp" />
     <ClCompile Include="mfd.cpp" />
     <ClCompile Include="mfd_context.cpp" />
     <ClCompile Include="mfd_filesystem.cpp" />

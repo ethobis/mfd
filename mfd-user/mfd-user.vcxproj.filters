@@ -21,9 +21,6 @@
     <ClCompile Include="mfd-user.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="..\mfd-common\mfd_common.cpp">
-      <Filter>공통 파일</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mfd-user.h">

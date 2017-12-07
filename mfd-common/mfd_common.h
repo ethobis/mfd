@@ -16,6 +16,12 @@ typedef struct _FILTER_REPLY
 	BOOLEAN bContinueFileIRP;
 }FILTER_REPLY, *PFILTER_REPLY;
 
+typedef struct _FILTER_REPLY_MESSAGE
+{
+	FILTER_REPLY_HEADER ReplyHeader;
+	FILTER_REPLY Reply;
+}FILTER_REPLY_MESSAGE, *PFILTER_REPLY_MESSAGE;
+
 #ifdef MFD_USER_MODE
 typedef struct _FILTER_MESSAGE
 {
@@ -23,12 +29,6 @@ typedef struct _FILTER_MESSAGE
 	FILTER_NOTIFICATION Notification;
 	OVERLAPPED Ovlp;
 }FILTER_MESSAGE, *PFILTER_MESSAGE;
-
-typedef struct _FILTER_REPLY_MESSAGE
-{
-	FILTER_REPLY_HEADER ReplyHeader;
-	FILTER_REPLY Reply;
-}FILTER_REPLY_MESSAGE, *PFILTER_REPLY_MESSAGE;
 #else
 typedef struct _FILTER_INFO
 {
@@ -36,7 +36,7 @@ typedef struct _FILTER_INFO
 	PFLT_PORT pServerPort;
 	PFLT_PORT pClientPort;
 }FILTER_INFO, *PFILTER_INFO;
-#endif 
+#endif
 
 #ifdef __cplusplus
 extern "C" {

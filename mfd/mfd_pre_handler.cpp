@@ -1,7 +1,11 @@
 #include "mfd_pre_handler.h"
+#include "..\mfd-common\mfd_common.h"
+
 #include "mfd_thread_notify.h"
+#include "mfd_filesystem.h"
 
 extern ACTIVE_THREAD_HEAD ActiveThreadHead;
+extern FILTER_INFO g_FilterInfo;
 
 FLT_PREOP_CALLBACK_STATUS
 FLTAPI MFDCreatePreHandler(
@@ -139,7 +143,7 @@ FLTAPI MFDPreHandler(
 		fltRetStatus = MFDSetInformationPreHandler(pData, pFltObjects, pCompletionContext);
 		break;
 	case IRP_MJ_DEVICE_CONTROL:
-		fltRetStatus = MFDCreatePreHandler(pData, pFltObjects, pCompletionContext);
+		fltRetStatus = MFDDeviceControlPreHandler(pData, pFltObjects, pCompletionContext);
 		break;
 	case IRP_MJ_INTERNAL_DEVICE_CONTROL:
 		fltRetStatus = MFDInternalDeviceControlPreHandler(pData, pFltObjects, pCompletionContext);

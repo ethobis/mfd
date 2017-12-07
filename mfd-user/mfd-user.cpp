@@ -18,13 +18,14 @@ FltWorkThread(
 	PFILTER_THREAD_CONTEXT Context = (PFILTER_THREAD_CONTEXT)FltWorkThreadContext;
 
 	while (1)
-	{
+	{		
 		bRetValue = GetQueuedCompletionStatus(
 			Context->hCompletion,
 			&dwOutputSize,
 			&ulptrKey,
 			&pOvlp,
-			INFINITE);
+			INFINITE
+		);
 
 		pMessage = CONTAINING_RECORD(pOvlp, FILTER_MESSAGE, Ovlp);
 
@@ -34,7 +35,7 @@ FltWorkThread(
 			break;
 		}
 
-		pNotification = &(pMessage->Notification);		
+		pNotification = &(pMessage->Notification);
 
 		ReplyMessage.Reply.bContinueFileIRP = TRUE;
 		ReplyMessage.ReplyHeader.Status = 0;

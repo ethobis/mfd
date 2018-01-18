@@ -46,6 +46,9 @@
     <ClCompile Include="mfd_filesystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\mfd-common\PE32.cpp">
+      <Filter>Common Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mfd.h">
@@ -73,6 +76,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\mfd-common\mfd_common.h">
+      <Filter>Common Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-common\PE32.h">
       <Filter>Common Files</Filter>
     </ClInclude>
   </ItemGroup>

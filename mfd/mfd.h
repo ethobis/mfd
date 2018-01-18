@@ -101,7 +101,7 @@ CONST FLT_OPERATION_REGISTRATION Callbacks[] =
 		0,
 		MFDPreHandler,
 		MFDPostHandler
-	},	
+	},
 	{
 		IRP_MJ_QUERY_VOLUME_INFORMATION,
 		0,
@@ -140,6 +140,12 @@ CONST FLT_OPERATION_REGISTRATION Callbacks[] =
 	},
 	{
 		IRP_MJ_CLEANUP,
+		0,
+		MFDPreHandler,
+		MFDPostHandler
+	},
+	{
+		IRP_MJ_SET_SECURITY,
 		0,
 		MFDPreHandler,
 		MFDPostHandler

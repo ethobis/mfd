@@ -8,7 +8,7 @@ typedef struct _ACTIVE_PROCESS_HEAD
 {
 	LIST_ENTRY ActiveProcessListHead;
 	BOOLEAN bAcquired;
-	KSPIN_LOCK SpinLock;
+	ERESOURCE Resource;
 	ULONG NumberOfActiveProcess;
 	NPAGED_LOOKASIDE_LIST ProcessNPLookasideList;
 }ACTIVE_PROCESS_HEAD, *PACTIVE_PROCESS_HEAD;
@@ -33,14 +33,11 @@ extern "C" {
 
 	PACTIVE_PROCESS
 	MFDAcquireActiveProcess(
-		_In_ PEPROCESS pActiveProcess,
-		_In_ PKLOCK_QUEUE_HANDLE pLockHandle
+		_In_ PEPROCESS pActiveProcess
 	);
 
 	VOID
-	MFDReleaseActiveProcess(
-		_In_ PKLOCK_QUEUE_HANDLE pLockHandle
-	);
+	MFDReleaseActiveProcess(VOID);
 
 	PACTIVE_PROCESS
 	MFDDeleteActiveProcess(

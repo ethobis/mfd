@@ -7,31 +7,29 @@ MFDInsertActiveProcess(
 	_In_ PACTIVE_PROCESS pActiveProcess
 )
 {
-	KLOCK_QUEUE_HANDLE hLockHandle = { 0, };
-
-	KeAcquireInStackQueuedSpinLock(&ActiveProcessHead.SpinLock, &hLockHandle);
+	KeEnterCriticalRegion();
+	ExAcquireResourceExclusiveLite(&ActiveProcessHead.Resource, TRUE);
 
 	InsertTailList(&ActiveProcessHead.ActiveProcessListHead, &pActiveProcess->ActiveProcessList);
 	ActiveProcessHead.NumberOfActiveProcess++;
 
-	KeReleaseInStackQueuedSpinLock(&hLockHandle);
+	ExReleaseResourceLite(&ActiveProcessHead.Resource);
+	KeLeaveCriticalRegion();
 
 	return;
 }
 
 PACTIVE_PROCESS
 MFDAcquireActiveProcess(
-	_In_ PEPROCESS pActiveProcess,
-	_In_ PKLOCK_QUEUE_HANDLE pLockHandle
+	_In_ PEPROCESS pActiveProcess
 )
 {
 	PLIST_ENTRY pProcessListEntry = NULL;
 	PACTIVE_PROCESS pSearchActiveProcess = NULL;
 	PACTIVE_PROCESS pRetActiveProcess = NULL;
 
-	KLOCK_QUEUE_HANDLE hLockHandle = { 0, };
-
-	KeAcquireInStackQueuedSpinLock(&ActiveProcessHead.SpinLock, &hLockHandle);
+	KeEnterCriticalRegion();
+	ExAcquireResourceExclusiveLite(&ActiveProcessHead.Resource, TRUE);
 
 	if (IsListEmpty(&ActiveProcessHead.ActiveProcessListHead))
 	{
@@ -54,21 +52,20 @@ MFDAcquireActiveProcess(
 _RET:
 	if (NULL == pRetActiveProcess)
 	{
-		KeReleaseInStackQueuedSpinLock(pLockHandle);
+		ExReleaseResourceLite(&ActiveProcessHead.Resource);
+		KeLeaveCriticalRegion();
 	}
 
 	return pRetActiveProcess;
 }
 
 VOID
-MFDReleaseActiveProcess(
-	_In_ PKLOCK_QUEUE_HANDLE pLockHandle
-)
+MFDReleaseActiveProcess(VOID)
 {
 	if (ActiveProcessHead.bAcquired)
 	{
-		ActiveProcessHead.bAcquired = FALSE;
-		KeReleaseInStackQueuedSpinLock(pLockHandle);
+		ExReleaseResourceLite(&ActiveProcessHead.Resource);
+		KeLeaveCriticalRegion();
 	}
 }
 
@@ -80,9 +77,9 @@ MFDDeleteActiveProcess(
 	PLIST_ENTRY pProcessListEntry = NULL;
 	PACTIVE_PROCESS pSearchActiveProcess = NULL;
 	PACTIVE_PROCESS pRetActiveProcess = NULL;
-	KLOCK_QUEUE_HANDLE hLockHandle = { 0, };
 
-	KeAcquireInStackQueuedSpinLock(&ActiveProcessHead.SpinLock, &hLockHandle);
+	KeEnterCriticalRegion();
+	ExAcquireResourceExclusiveLite(&ActiveProcessHead.Resource, TRUE);
 
 	if (IsListEmpty(&ActiveProcessHead.ActiveProcessListHead))
 	{
@@ -105,7 +102,8 @@ MFDDeleteActiveProcess(
 	}
 
 _RET:
-	KeReleaseInStackQueuedSpinLock(&hLockHandle);
+	ExReleaseResourceLite(&ActiveProcessHead.Resource);
+	KeLeaveCriticalRegion();
 	return pRetActiveProcess;
 }
 
@@ -114,9 +112,9 @@ MFDDeleteAllProcess(VOID)
 {
 	PLIST_ENTRY pDeleteActiveProcessList = NULL;
 	PACTIVE_PROCESS pDeleteActiveProcess = NULL;
-	KLOCK_QUEUE_HANDLE hLockHandle = { 0, };
-
-	KeAcquireInStackQueuedSpinLock(&ActiveProcessHead.SpinLock, &hLockHandle);
+	
+	KeEnterCriticalRegion();
+	ExAcquireResourceExclusiveLite(&ActiveProcessHead.Resource, TRUE);
 
 	if (IsListEmpty(&ActiveProcessHead.ActiveProcessListHead))
 	{
@@ -141,7 +139,8 @@ MFDDeleteAllProcess(VOID)
 	} while (pDeleteActiveProcessList && (pDeleteActiveProcessList != &ActiveProcessHead.ActiveProcessListHead));
 
 _RET:
-	KeReleaseInStackQueuedSpinLock(&hLockHandle);
+	ExReleaseResourceLite(&ActiveProcessHead.Resource);
+	KeLeaveCriticalRegion();
 	return;
 }
 
@@ -213,7 +212,7 @@ MFDSetProcessNotifyRoutine(
 	}
 
 	InitializeListHead(&ActiveProcessHead.ActiveProcessListHead);
-	KeInitializeSpinLock(&ActiveProcessHead.SpinLock);
+	ExInitializeResourceLite(&ActiveProcessHead.Resource);
 	ExInitializeNPagedLookasideList(&ActiveProcessHead.ProcessNPLookasideList, NULL, NULL, 0, sizeof(ACTIVE_PROCESS), 0, 0);
 
 _RET:
@@ -239,6 +238,7 @@ MFDRemoveProcessNotifyRoutine(
 		goto _RET;
 	}
 
+	ExDeleteResourceLite(&ActiveProcessHead.Resource);
 	ExDeleteNPagedLookasideList(&ActiveProcessHead.ProcessNPLookasideList);
 
 _RET:

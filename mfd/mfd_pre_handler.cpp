@@ -1,5 +1,6 @@
 #include "mfd_pre_handler.h"
 #include "..\mfd-common\mfd_common.h"
+#include "..\mfd-common\PE32.h"
 
 #include "mfd_thread_notify.h"
 #include "mfd_filesystem.h"
@@ -120,6 +121,22 @@ FLTAPI MFDCleanupPreHandler(
 }
 
 FLT_PREOP_CALLBACK_STATUS
+FLTAPI MFDSetSecurityPreHandler(
+	_Inout_ PFLT_CALLBACK_DATA pData,
+	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+	_Out_ PVOID *pCompletionContext
+)
+{
+	FLT_PREOP_CALLBACK_STATUS fltRetStatus = FLT_PREOP_SUCCESS_WITH_CALLBACK;
+
+	UNREFERENCED_PARAMETER(pData);
+	UNREFERENCED_PARAMETER(pFltObjects);
+	UNREFERENCED_PARAMETER(pCompletionContext);
+
+	return fltRetStatus;
+}
+
+FLT_PREOP_CALLBACK_STATUS
 FLTAPI MFDPreHandler(
 	_Inout_ PFLT_CALLBACK_DATA pData,
 	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
@@ -150,6 +167,9 @@ FLTAPI MFDPreHandler(
 		break;
 	case IRP_MJ_CLEANUP:
 		fltRetStatus = MFDCleanupPreHandler(pData, pFltObjects, pCompletionContext);
+		break;
+	case IRP_MJ_SET_SECURITY:
+		fltRetStatus = MFDSetSecurityPreHandler(pData, pFltObjects, pCompletionContext);
 		break;
 	}
 

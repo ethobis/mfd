@@ -15,7 +15,7 @@ typedef struct _ACTIVE_THREAD_HEAD
 
 typedef struct _ACTIVE_THREAD
 {
-	PETHREAD Thread;	
+	ULONG_PTR ulptrThreadId;
 	LIST_ENTRY ActiveThreadList;
 	/*
 		Add-Context	
@@ -26,28 +26,20 @@ typedef struct _ACTIVE_THREAD
 extern "C" {
 #endif
 
-	VOID
+	void
 	MFDInsertActiveThread(
 		_In_ PACTIVE_THREAD pActiveThread
 	);
 
 	PACTIVE_THREAD
-	MFDAcquireActiveThread(
-		_In_ PETHREAD pActiveThread
-	);
-
-	VOID
-	MFDReleaseActiveThread(VOID);
-
-	PACTIVE_THREAD
 	MFDDeleteActiveThread(
-		_In_ PETHREAD pDeleteThread
+		_In_ ULONG_PTR ulptrThreadId
 	);
 
-	VOID
-	MFDDeleteAllThread(VOID);
+	void
+	MFDDeleteAllThread(void);
 
-	VOID
+	void
 	MFDThreadNotifyRoutine(
 		_In_ HANDLE hProcessId,
 		_In_ HANDLE hThreadId,

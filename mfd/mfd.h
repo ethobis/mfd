@@ -36,7 +36,7 @@ extern "C" {
 		_In_ PVOID *pvConnectionCookie
 	);
 
-	VOID
+	void
 	FLTAPI MFDPortDisconnect(
 		_In_ PVOID pvConnectionCookie
 	);
@@ -49,7 +49,7 @@ extern "C" {
 		_In_ FLT_FILESYSTEM_TYPE VolumeFilesystemType
 	);
 
-	VOID
+	void
 	FLTAPI MFDInstanceTeardown(
 		_In_ PCFLT_RELATED_OBJECTS pFltObjects,
 		_In_ FLT_INSTANCE_TEARDOWN_FLAGS Reason

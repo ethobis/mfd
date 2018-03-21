@@ -1,12 +1,4 @@
 #include "mfd_pre_handler.h"
-#include "..\mfd-common\mfd_common.h"
-#include "..\mfd-common\PE32.h"
-
-#include "mfd_thread_notify.h"
-#include "mfd_filesystem.h"
-
-extern ACTIVE_THREAD_HEAD ActiveThreadHead;
-extern FILTER_INFO g_FilterInfo;
 
 FLT_PREOP_CALLBACK_STATUS
 FLTAPI MFDCreatePreHandler(

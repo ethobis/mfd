@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
 	ULONG
-	GetVolumeDeviceType(
+	GetVolumeDeviceCharacteristics(
 		_In_ PCFLT_RELATED_OBJECTS pFltObjects
 	);
 
@@ -33,7 +33,7 @@ extern "C" {
 		_In_ BOOLEAN bWithVolumeDosName
 	);
 
-	VOID
+	void
 	GetEnumerateVolume(
 		_In_ PFLT_FILTER pFltFilter
 	);

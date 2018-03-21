@@ -1,28 +1,28 @@
 #include "mfd_filesystem.h"
 
 ULONG
-GetVolumeDeviceType(
+GetVolumeDeviceCharacteristics(
 	_In_ PCFLT_RELATED_OBJECTS pFltObjects
 )
 {
 	NTSTATUS status = STATUS_SUCCESS;
 	ULONG ulRetVolumeDeviceType = 0;
-	PFLT_VOLUME_PROPERTIES pFltVolumeProperties = NULL;
+	PFLT_VOLUME_PROPERTIES pFltVolumeProperties = nullptr;
 	ULONG ulPropertiesSize = 0;
 	ULONG ulRetPropertiesSize = 0;
 
-	if (NULL == pFltObjects)
+	if (nullptr == pFltObjects)
 	{
 		goto _RET;
 	}
 
-	status = FltGetVolumeProperties(pFltObjects->Volume, NULL, 0, &ulPropertiesSize);
+	status = FltGetVolumeProperties(pFltObjects->Volume, nullptr, 0, &ulPropertiesSize);
 
 	if (STATUS_BUFFER_TOO_SMALL == status)
 	{
 		pFltVolumeProperties = (PFLT_VOLUME_PROPERTIES)ExAllocatePool(NonPagedPool, ulPropertiesSize);
 
-		if (NULL == pFltVolumeProperties)
+		if (nullptr == pFltVolumeProperties)
 		{
 			goto _RET;
 		}
@@ -38,10 +38,10 @@ GetVolumeDeviceType(
 	}
 
 _RET:
-	if (NULL != pFltVolumeProperties)
+	if (nullptr != pFltVolumeProperties)
 	{
 		ExFreePool(pFltVolumeProperties);
-		pFltVolumeProperties = NULL;
+		pFltVolumeProperties = nullptr;
 	}
 	
 	return ulRetVolumeDeviceType;
@@ -54,11 +54,11 @@ GetVolumeDeviceName(
 )
 {
 	NTSTATUS status = STATUS_SUCCESS;
-	BOOLEAN bRetValue = FALSE;
-	PDEVICE_OBJECT pDiskDeviceObject = NULL;
+	BOOLEAN bRetValue = false;
+	PDEVICE_OBJECT pDiskDeviceObject = nullptr;
 	UNICODE_STRING uniRetVolumeDeviceName = { 0, };
 
-	if (NULL == pFltObjects)
+	if (nullptr == pFltObjects)
 	{
 		goto _RET;
 	}
@@ -84,15 +84,15 @@ GetVolumeDeviceName(
 
 	RtlCopyMemory(pwchOutVolumeDeviceName, uniRetVolumeDeviceName.Buffer, uniRetVolumeDeviceName.Length * sizeof(WCHAR));
 
-	bRetValue = TRUE;
+	bRetValue = true;
 
 _RET:
-	if (NULL != uniRetVolumeDeviceName.Buffer)
+	if (nullptr != uniRetVolumeDeviceName.Buffer)
 	{
 		ExFreePool(uniRetVolumeDeviceName.Buffer);
 	}
 
-	if (NULL != pDiskDeviceObject)
+	if (nullptr != pDiskDeviceObject)
 	{
 		ObDereferenceObject(pDiskDeviceObject);
 	}
@@ -108,14 +108,14 @@ GetFilePath(
 	_In_ BOOLEAN bWithVolumeDosName
 )
 {
-	BOOLEAN bRetValue = FALSE;
+	BOOLEAN bRetValue = false;
 	NTSTATUS status = STATUS_SUCCESS;
-	PFLT_FILE_NAME_INFORMATION pFileNameInfo = NULL;
+	PFLT_FILE_NAME_INFORMATION pFileNameInfo = nullptr;
 	ULONG ulBufferLength = 0;
 	ULONG ulBufferIndex = 0;
 	WCHAR wchDosName[3] = { 0, };
 
-	if (NULL == pData || NULL == pFltObjects)
+	if (nullptr == pData || nullptr == pFltObjects)
 	{
 		goto _RET;
 	}
@@ -138,16 +138,16 @@ GetFilePath(
 		goto _RET;
 	}
 
-	if (bWithVolumeDosName == TRUE)
+	if (bWithVolumeDosName)
 	{
 		ulBufferLength = 2 * sizeof(WCHAR);
 
-		if (NULL != pFileNameInfo->ParentDir.Buffer)
+		if (nullptr != pFileNameInfo->ParentDir.Buffer)
 		{
 			ulBufferLength += pFileNameInfo->ParentDir.Length;
 		}
 
-		if (NULL != pFileNameInfo->FinalComponent.Buffer)
+		if (nullptr != pFileNameInfo->FinalComponent.Buffer)
 		{
 			ulBufferLength += pFileNameInfo->FinalComponent.Length;
 		}
@@ -156,7 +156,7 @@ GetFilePath(
 	}
 	else
 	{
-		if (NULL != pFileNameInfo->Name.Buffer)
+		if (nullptr != pFileNameInfo->Name.Buffer)
 		{
 			ulBufferLength = pFileNameInfo->Name.Length + sizeof(WCHAR);
 		}
@@ -164,12 +164,12 @@ GetFilePath(
 
 	(*pwchOutFilePath) = (PWCHAR)ExAllocatePool(NonPagedPool, ulBufferLength);
 
-	if (NULL == (*pwchOutFilePath))
+	if (nullptr == (*pwchOutFilePath))
 	{
 		goto _RET;
 	}
 
-	if (TRUE == bWithVolumeDosName)
+	if (bWithVolumeDosName)
 	{
 		if (!GetVolumeDeviceName(pFltObjects, wchDosName))
 		{
@@ -179,13 +179,13 @@ GetFilePath(
 		RtlCopyMemory((*pwchOutFilePath), wchDosName, 2 * sizeof(WCHAR));
 		ulBufferIndex += 2;
 
-		if (NULL != pFileNameInfo->ParentDir.Buffer)
+		if (nullptr != pFileNameInfo->ParentDir.Buffer)
 		{
 			RtlCopyMemory(&(*pwchOutFilePath)[ulBufferIndex], pFileNameInfo->ParentDir.Buffer, pFileNameInfo->ParentDir.Length);
 			ulBufferIndex += (pFileNameInfo->ParentDir.Length / sizeof(WCHAR));
 		}
 
-		if (NULL != pFileNameInfo->FinalComponent.Buffer)
+		if (nullptr != pFileNameInfo->FinalComponent.Buffer)
 		{
 			RtlCopyMemory(&(*pwchOutFilePath)[ulBufferIndex], pFileNameInfo->FinalComponent.Buffer, pFileNameInfo->FinalComponent.Length);
 		}
@@ -195,35 +195,35 @@ GetFilePath(
 		RtlCopyMemory((*pwchOutFilePath), pFileNameInfo->Name.Buffer, pFileNameInfo->Name.Length);
 	}
 
-	bRetValue = TRUE;
+	bRetValue = true;
 
 _RET:
-	if (NULL != pFileNameInfo)
+	if (nullptr != pFileNameInfo)
 	{
 		FltReleaseFileNameInformation(pFileNameInfo);
-		pFileNameInfo = NULL;
+		pFileNameInfo = nullptr;
 	}
 
 	return bRetValue;
 }
 
-VOID
+void
 GetEnumerateVolume(
 	_In_ PFLT_FILTER pFltFilter
 )
 {
 	NTSTATUS status = STATUS_SUCCESS;
-	FILTER_VOLUME_STANDARD_INFORMATION* pFilterVolumeStdInfo = NULL;
+	FILTER_VOLUME_STANDARD_INFORMATION* pFilterVolumeStdInfo = nullptr;
 	ULONG ulReturnBytes = 0;
 	ULONG ulIndex = 0;
 	ULONG ulNumberOfVolume = 0;
 
-	if (NULL == pFltFilter)
+	if (nullptr == pFltFilter)
 	{
 		goto _RET;
 	}
 
-	status = FltEnumerateVolumes(pFltFilter, NULL, 0, &ulNumberOfVolume);
+	status = FltEnumerateVolumes(pFltFilter, nullptr, 0, &ulNumberOfVolume);
 
 	if (0 == ulNumberOfVolume)
 	{
@@ -236,21 +236,21 @@ GetEnumerateVolume(
 			pFltFilter,
 			ulIndex,
 			FilterVolumeStandardInformation,
-			NULL,
-			NULL,
+			nullptr,
+			0,
 			&ulReturnBytes
 			);
 
 		if (STATUS_BUFFER_TOO_SMALL == status)
 		{
-			if (NULL == ulReturnBytes)
+			if (0 == ulReturnBytes)
 			{
 				goto _RET;
 			}
 
 			pFilterVolumeStdInfo = (PFILTER_VOLUME_STANDARD_INFORMATION)ExAllocatePool(NonPagedPool, ulReturnBytes);
 
-			if (NULL == pFilterVolumeStdInfo)
+			if (nullptr == pFilterVolumeStdInfo)
 			{
 				goto _RET;
 			}
@@ -272,19 +272,19 @@ GetEnumerateVolume(
 				// NTFS 볼륨 타입인 경우에 작업
 			}
 
-			if (NULL != pFilterVolumeStdInfo)
+			if (nullptr != pFilterVolumeStdInfo)
 			{
 				ExFreePool(pFilterVolumeStdInfo);
-				pFilterVolumeStdInfo = NULL;
+				pFilterVolumeStdInfo = nullptr;
 			}
 		}
 	}
 
 _RET:
-	if (NULL != pFilterVolumeStdInfo)
+	if (nullptr != pFilterVolumeStdInfo)
 	{
 		ExFreePool(pFilterVolumeStdInfo);
-		pFilterVolumeStdInfo = NULL;
+		pFilterVolumeStdInfo = nullptr;
 	}
 
 	return;

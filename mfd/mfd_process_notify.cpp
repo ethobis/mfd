@@ -1,190 +1,127 @@
 #include "mfd_process_notify.h"
 
-ACTIVE_PROCESS_HEAD ActiveProcessHead = { NULL, };
+ACTIVE_PROCESS_HEAD ActiveProcess = { 0, };
 
-VOID
+void
 MFDInsertActiveProcess(
 	_In_ PACTIVE_PROCESS pActiveProcess
 )
 {
-	KeEnterCriticalRegion();
-	ExAcquireResourceExclusiveLite(&ActiveProcessHead.Resource, TRUE);
+	KLOCK_QUEUE_HANDLE hLockHandle;
 
-	InsertTailList(&ActiveProcessHead.ActiveProcessListHead, &pActiveProcess->ActiveProcessList);
-	ActiveProcessHead.NumberOfActiveProcess++;
-
-	ExReleaseResourceLite(&ActiveProcessHead.Resource);
-	KeLeaveCriticalRegion();
+	KeAcquireInStackQueuedSpinLock(&ActiveProcess.SpinLock, &hLockHandle);
+		InsertTailList(&ActiveProcess.ActiveProcessListHead, &pActiveProcess->ActiveProcessList);
+		ActiveProcess.NumberOfActiveProcess++;
+	KeReleaseInStackQueuedSpinLock(&hLockHandle);
 
 	return;
-}
-
-PACTIVE_PROCESS
-MFDAcquireActiveProcess(
-	_In_ PEPROCESS pActiveProcess
-)
-{
-	PLIST_ENTRY pProcessListEntry = NULL;
-	PACTIVE_PROCESS pSearchActiveProcess = NULL;
-	PACTIVE_PROCESS pRetActiveProcess = NULL;
-
-	KeEnterCriticalRegion();
-	ExAcquireResourceExclusiveLite(&ActiveProcessHead.Resource, TRUE);
-
-	if (IsListEmpty(&ActiveProcessHead.ActiveProcessListHead))
-	{
-		goto _RET;
-	}
-
-	for (pProcessListEntry = ActiveProcessHead.ActiveProcessListHead.Flink;
-		pProcessListEntry && (pProcessListEntry != &ActiveProcessHead.ActiveProcessListHead); pProcessListEntry = pProcessListEntry->Flink)
-	{
-		pSearchActiveProcess = CONTAINING_RECORD(pProcessListEntry, ACTIVE_PROCESS, ActiveProcessList);
-
-		if (pSearchActiveProcess->Process == pActiveProcess)
-		{
-			pRetActiveProcess = pSearchActiveProcess;
-			ActiveProcessHead.bAcquired = TRUE;
-			break;
-		}
-	}
-
-_RET:
-	if (NULL == pRetActiveProcess)
-	{
-		ExReleaseResourceLite(&ActiveProcessHead.Resource);
-		KeLeaveCriticalRegion();
-	}
-
-	return pRetActiveProcess;
-}
-
-VOID
-MFDReleaseActiveProcess(VOID)
-{
-	if (ActiveProcessHead.bAcquired)
-	{
-		ExReleaseResourceLite(&ActiveProcessHead.Resource);
-		KeLeaveCriticalRegion();
-	}
 }
 
 PACTIVE_PROCESS
 MFDDeleteActiveProcess(
-	_In_ PEPROCESS pDeleteProcess
+	_In_ ULONG_PTR ulptrProcessId
 )
 {
-	PLIST_ENTRY pProcessListEntry = NULL;
-	PACTIVE_PROCESS pSearchActiveProcess = NULL;
-	PACTIVE_PROCESS pRetActiveProcess = NULL;
+	PLIST_ENTRY pProcessListEntry = nullptr;
+	KLOCK_QUEUE_HANDLE hLockHandle;
+	PACTIVE_PROCESS pSearchActiveProcess = nullptr;
+	PACTIVE_PROCESS pRetActiveProcess = nullptr;	
 
-	KeEnterCriticalRegion();
-	ExAcquireResourceExclusiveLite(&ActiveProcessHead.Resource, TRUE);
+	KeAcquireInStackQueuedSpinLock(&ActiveProcess.SpinLock, &hLockHandle);
 
-	if (IsListEmpty(&ActiveProcessHead.ActiveProcessListHead))
+	if (IsListEmpty(&ActiveProcess.ActiveProcessListHead))
 	{
 		goto _RET;
 	}
 
-	for (pProcessListEntry = ActiveProcessHead.ActiveProcessListHead.Flink;
-		pProcessListEntry && (pProcessListEntry != &ActiveProcessHead.ActiveProcessListHead); pProcessListEntry = pProcessListEntry->Flink)
+	for (pProcessListEntry = ActiveProcess.ActiveProcessListHead.Flink;
+		pProcessListEntry && (pProcessListEntry != &ActiveProcess.ActiveProcessListHead); pProcessListEntry = pProcessListEntry->Flink)
 	{
 		pSearchActiveProcess = CONTAINING_RECORD(pProcessListEntry, ACTIVE_PROCESS, ActiveProcessList);
 
-		if (pSearchActiveProcess->Process == pDeleteProcess)
+		if (pSearchActiveProcess->ulptrProcessId == ulptrProcessId)
 		{
 			(pProcessListEntry->Blink)->Flink = pProcessListEntry->Flink;
 			(pProcessListEntry->Flink)->Blink = pProcessListEntry->Blink;
 			pRetActiveProcess = pSearchActiveProcess;
-			ActiveProcessHead.NumberOfActiveProcess--;
+			ActiveProcess.NumberOfActiveProcess--;
 			break;
 		}
 	}
 
 _RET:
-	ExReleaseResourceLite(&ActiveProcessHead.Resource);
-	KeLeaveCriticalRegion();
+	KeReleaseInStackQueuedSpinLock(&hLockHandle);
 	return pRetActiveProcess;
 }
 
-VOID
-MFDDeleteAllProcess(VOID)
+void
+MFDDeleteAllProcess(void)
 {
-	PLIST_ENTRY pDeleteActiveProcessList = NULL;
-	PACTIVE_PROCESS pDeleteActiveProcess = NULL;
+	KLOCK_QUEUE_HANDLE hLockHandle;
+	PLIST_ENTRY pDeleteActiveProcessList = nullptr;
+	PACTIVE_PROCESS pDeleteActiveProcess = nullptr;
 	
-	KeEnterCriticalRegion();
-	ExAcquireResourceExclusiveLite(&ActiveProcessHead.Resource, TRUE);
+	KeAcquireInStackQueuedSpinLock(&ActiveProcess.SpinLock, &hLockHandle);
 
-	if (IsListEmpty(&ActiveProcessHead.ActiveProcessListHead))
+	if (IsListEmpty(&ActiveProcess.ActiveProcessListHead))
 	{
 		goto _RET;
 	}
 
-	pDeleteActiveProcessList = RemoveHeadList(&ActiveProcessHead.ActiveProcessListHead);
+	pDeleteActiveProcessList = RemoveHeadList(&ActiveProcess.ActiveProcessListHead);
 
 	do
 	{
-		if (NULL != pDeleteActiveProcessList)
+		if (nullptr != pDeleteActiveProcessList)
 		{
 			pDeleteActiveProcess = CONTAINING_RECORD(pDeleteActiveProcessList, ACTIVE_PROCESS, ActiveProcessList);
 
-			if (NULL != pDeleteActiveProcess)
+			if (nullptr != pDeleteActiveProcess)
 			{
-				ExFreeToNPagedLookasideList(&ActiveProcessHead.ProcessNPLookasideList, pDeleteActiveProcess);
-				pDeleteActiveProcess = NULL;
+				ExFreePool(pDeleteActiveProcess);
+				pDeleteActiveProcess = nullptr;
 			}
 		}
-		pDeleteActiveProcessList = RemoveHeadList(&ActiveProcessHead.ActiveProcessListHead);
-	} while (pDeleteActiveProcessList && (pDeleteActiveProcessList != &ActiveProcessHead.ActiveProcessListHead));
+		pDeleteActiveProcessList = RemoveHeadList(&ActiveProcess.ActiveProcessListHead);
+	} while (pDeleteActiveProcessList && (pDeleteActiveProcessList != &ActiveProcess.ActiveProcessListHead));
 
 _RET:
-	ExReleaseResourceLite(&ActiveProcessHead.Resource);
-	KeLeaveCriticalRegion();
+	KeReleaseInStackQueuedSpinLock(&hLockHandle);
 	return;
 }
 
-VOID
+void
 MFDProcessNotifyRoutine(
 	_In_ HANDLE hParentId,
 	_In_ HANDLE hProcessId,
 	_In_ BOOLEAN bCreate
 )
 {
-	NTSTATUS status = STATUS_SUCCESS;
-	PACTIVE_PROCESS pActiveProcess = NULL;
-	PEPROCESS pProcessLookupByPid = NULL;
+	PACTIVE_PROCESS pActiveProcess = nullptr;
 
 	UNREFERENCED_PARAMETER(hParentId);
 
-	status = PsLookupProcessByProcessId(hProcessId, &pProcessLookupByPid);
-
-	if (!NT_SUCCESS(status))
-	{
-		goto _RET;
-	}
-
 	if (bCreate)
 	{
-		pActiveProcess = (PACTIVE_PROCESS)ExAllocateFromNPagedLookasideList(&ActiveProcessHead.ProcessNPLookasideList);
+		pActiveProcess = (PACTIVE_PROCESS)ExAllocatePool(NonPagedPool, sizeof(ACTIVE_PROCESS));
 
-		if (NULL == pActiveProcess)
+		if (nullptr == pActiveProcess)
 		{
 			goto _RET;
 		}
 
-		RtlZeroMemory(pActiveProcess, sizeof(PACTIVE_PROCESS));
-		pActiveProcess->Process = pProcessLookupByPid;
+		RtlZeroMemory(pActiveProcess, sizeof(ACTIVE_PROCESS));
+		pActiveProcess->ulptrProcessId = (ULONG_PTR)hProcessId;
 		MFDInsertActiveProcess(pActiveProcess);
 	}
 	else
 	{
-		pActiveProcess = MFDDeleteActiveProcess(pProcessLookupByPid);
+		pActiveProcess = MFDDeleteActiveProcess((ULONG_PTR)hProcessId);
 
-		if (NULL != pActiveProcess)
+		if (nullptr != pActiveProcess)
 		{
-			ExFreeToNPagedLookasideList(&ActiveProcessHead.ProcessNPLookasideList, pActiveProcess);
-			pActiveProcess = NULL;
+			ExFreePool(pActiveProcess);
+			pActiveProcess = nullptr;
 		}
 	}
 
@@ -199,21 +136,20 @@ MFDSetProcessNotifyRoutine(
 {
 	NTSTATUS status = STATUS_UNSUCCESSFUL;
 
-	if (NULL == pvProcessNotifyRoutine)
+	if (nullptr == pvProcessNotifyRoutine)
 	{
 		goto _RET;
 	}
 
-	status = PsSetCreateProcessNotifyRoutine((PCREATE_PROCESS_NOTIFY_ROUTINE)pvProcessNotifyRoutine, FALSE);
+	status = PsSetCreateProcessNotifyRoutine((PCREATE_PROCESS_NOTIFY_ROUTINE)pvProcessNotifyRoutine, false);
 
 	if (!NT_SUCCESS(status))
 	{
 		goto _RET;
 	}
 
-	InitializeListHead(&ActiveProcessHead.ActiveProcessListHead);
-	ExInitializeResourceLite(&ActiveProcessHead.Resource);
-	ExInitializeNPagedLookasideList(&ActiveProcessHead.ProcessNPLookasideList, NULL, NULL, 0, sizeof(ACTIVE_PROCESS), 0, 0);
+	InitializeListHead(&ActiveProcess.ActiveProcessListHead);
+	KeInitializeSpinLock(&ActiveProcess.SpinLock);
 
 _RET:
 	return status;
@@ -226,20 +162,17 @@ MFDRemoveProcessNotifyRoutine(
 {
 	NTSTATUS status = STATUS_UNSUCCESSFUL;
 
-	if (NULL == pvProcessNotifyRoutine)
+	if (nullptr == pvProcessNotifyRoutine)
 	{
 		goto _RET;
 	}
 
-	status = PsSetCreateProcessNotifyRoutine((PCREATE_PROCESS_NOTIFY_ROUTINE)pvProcessNotifyRoutine, TRUE);
+	status = PsSetCreateProcessNotifyRoutine((PCREATE_PROCESS_NOTIFY_ROUTINE)pvProcessNotifyRoutine, true);
 
 	if (!NT_SUCCESS(status))
 	{
 		goto _RET;
 	}
-
-	ExDeleteResourceLite(&ActiveProcessHead.Resource);
-	ExDeleteNPagedLookasideList(&ActiveProcessHead.ProcessNPLookasideList);
 
 _RET:
 	return status;

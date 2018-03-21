@@ -1,6 +1,6 @@
 #include "mfd_image_notify.h"
 
-VOID
+void
 MFDLoadImageNotifyRoutine(
 	_In_ PUNICODE_STRING puniFullImageName,
 	_In_ HANDLE hProcessId,
@@ -21,7 +21,7 @@ MFDSetImageNotifyRoutine(
 {
 	NTSTATUS status = STATUS_SUCCESS;
 
-	if (NULL == pvImageNotifyRoutine)
+	if (nullptr == pvImageNotifyRoutine)
 	{
 		goto _RET;
 	}
@@ -39,7 +39,7 @@ MFDRemoveImageNotifyRoutine(
 {
 	NTSTATUS status = STATUS_SUCCESS;
 
-	if (NULL == pvImageNotifyRoutine)
+	if (nullptr == pvImageNotifyRoutine)
 	{
 		goto _RET;
 	}

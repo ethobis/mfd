@@ -6,10 +6,10 @@ FltWorkThread(
 	)
 {
 	DWORD dwRetValue = 0;
-	PFILTER_NOTIFICATION pNotification = NULL;
+	PFILTER_NOTIFICATION pNotification = nullptr;
 	FILTER_REPLY_MESSAGE ReplyMessage = { 0, };
-	PFILTER_MESSAGE pMessage = NULL;
-	LPOVERLAPPED pOvlp = NULL;
+	PFILTER_MESSAGE pMessage = nullptr;
+	LPOVERLAPPED pOvlp = nullptr;
 	BOOLEAN bRetValue = FALSE;
 	DWORD dwOutputSize = 0;
 	HRESULT hr;
@@ -75,21 +75,21 @@ int main(int argc, char** argv)
 	ULONG ulIndex = 0;
 	ULONG ulRequestIndex = 0;
 	HRESULT hr;
-	HANDLE hPort = NULL, hCompletion = NULL;
+	HANDLE hPort = nullptr, hCompletion = nullptr;
 	DWORD dwThreadCount = FILTER_DEFAULT_THREAD_COUNT;
 	DWORD dwRequestCount = FILTER_DEFAULT_REQUEST_COUNT;
 	HANDLE hThread[FILTER_MAX_THREAD_COUNT];
 	DWORD dwThreadId = 0;
-	FILTER_THREAD_CONTEXT Context = { NULL, };
-	PFILTER_MESSAGE pMessage = NULL;
+	FILTER_THREAD_CONTEXT Context = { nullptr, };
+	PFILTER_MESSAGE pMessage = nullptr;
 	DWORD dwRetValue = 0;
 
 	hr = FilterConnectCommunicationPort(
 		FLT_FILTER_NAME,
 		0,
-		NULL,
+		nullptr,
 		0,
-		NULL,
+		nullptr,
 		&hPort
 	);
 
@@ -98,9 +98,9 @@ int main(int argc, char** argv)
 		hr = FilterConnectCommunicationPort(
 			FLT_FILTER_NAME,
 			0,	
-			NULL,
+			nullptr,
 			0,
-			NULL,
+			nullptr,
 			&hPort
 		);
 
@@ -112,12 +112,12 @@ int main(int argc, char** argv)
 
 	hCompletion = CreateIoCompletionPort(
 		hPort,
-		NULL,
+		nullptr,
 		0,
 		dwThreadCount
 	);
 
-	if (hCompletion == NULL)
+	if (hCompletion == nullptr)
 	{
 		goto _RET;
 	}
@@ -128,7 +128,7 @@ int main(int argc, char** argv)
 	for (ulIndex = 0; ulIndex < dwThreadCount; ++ulIndex)
 	{
 		hThread[ulIndex] = (HANDLE)_beginthreadex(
-			NULL,
+			nullptr,
 			0,
 			FltWorkThread,
 			&Context,
@@ -136,7 +136,7 @@ int main(int argc, char** argv)
 			(unsigned int*)dwThreadId
 		);
 
-		if (hThread[ulIndex] == NULL)
+		if (hThread[ulIndex] == nullptr)
 		{
 			goto _RET;
 		}
@@ -145,7 +145,7 @@ int main(int argc, char** argv)
 		{
 			pMessage = (PFILTER_MESSAGE)malloc(sizeof(FILTER_MESSAGE));
 
-			if (pMessage == NULL)
+			if (pMessage == nullptr)
 			{
 				goto _RET;
 			}
@@ -173,22 +173,22 @@ int main(int argc, char** argv)
 	return 0;
 
 _RET:
-	if (NULL != hPort)
+	if (nullptr != hPort)
 	{
 		CloseHandle(hPort);
-		hPort = NULL;
+		hPort = nullptr;
 	}
 
-	if (NULL != hCompletion)
+	if (nullptr != hCompletion)
 	{
 		CloseHandle(hCompletion);
-		hCompletion = NULL;
+		hCompletion = nullptr;
 	}
 
-	if (pMessage != NULL)
+	if (pMessage != nullptr)
 	{
 		free(pMessage);
-		pMessage = NULL;
+		pMessage = nullptr;
 	}
 
 	return 0;

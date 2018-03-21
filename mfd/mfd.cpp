@@ -55,7 +55,7 @@ FLTAPI MFDPortConnect(
 	return status;
 }
 
-VOID
+void
 FLTAPI MFDPortDisconnect(
 	_In_ PVOID pvConnectionCookie
 )
@@ -64,7 +64,7 @@ FLTAPI MFDPortDisconnect(
 
 	PAGED_CODE();
 
-	if (NULL != g_FilterInfo.pClientPort)
+	if (nullptr != g_FilterInfo.pClientPort)
 	{
 		FltCloseClientPort(g_FilterInfo.pFilter, &g_FilterInfo.pClientPort);
 	}
@@ -92,7 +92,7 @@ FLTAPI MFDInstanceSetup(
 	return status;
 }
 
-VOID
+void
 FLTAPI MFDInstanceTeardown(
 	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
 	_In_ FLT_INSTANCE_TEARDOWN_FLAGS Reason
@@ -115,16 +115,6 @@ FLTAPI DriverUnload(
 
 	UNREFERENCED_PARAMETER(Flags);
 
-	if (NULL != g_FilterInfo.pServerPort)
-	{
-		FltCloseCommunicationPort(g_FilterInfo.pServerPort);
-	}
-
-	if (NULL != g_FilterInfo.pFilter)
-	{
-		FltUnregisterFilter(g_FilterInfo.pFilter);
-	}
-
 	MFDRemoveImageNotifyRoutine(MFDLoadImageNotifyRoutine);
 
 	MFDRemoveProcessNotifyRoutine(MFDProcessNotifyRoutine);
@@ -132,6 +122,16 @@ FLTAPI DriverUnload(
 
 	MFDRemoveThreadNotifyRoutine(MFDThreadNotifyRoutine);
 	MFDDeleteAllThread();
+
+	if (nullptr != g_FilterInfo.pServerPort)
+	{
+		FltCloseCommunicationPort(g_FilterInfo.pServerPort);
+	}
+
+	if (nullptr != g_FilterInfo.pFilter)
+	{
+		FltUnregisterFilter(g_FilterInfo.pFilter);
+	}
 
 	DbgPrintEx(DPFLTR_DEFAULT_ID, DPFLTR_ERROR_LEVEL, "[DRIVER UNLOAD] :: SUCCESS!\n");
 
@@ -147,7 +147,7 @@ DriverEntry(
 	NTSTATUS status = STATUS_SUCCESS;
 	UNICODE_STRING uniPortName = { 0, };
 	OBJECT_ATTRIBUTES oa = { 0, };
-	PSECURITY_DESCRIPTOR pSD = NULL;
+	PSECURITY_DESCRIPTOR pSD = nullptr;
 
 	UNREFERENCED_PARAMETER(pDriverObject);
 	UNREFERENCED_PARAMETER(puniRegistryPath);
@@ -173,7 +173,7 @@ DriverEntry(
 		&oa,
 		&uniPortName,
 		OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE,
-		NULL,
+		nullptr,
 		pSD
 	);
 	
@@ -181,7 +181,7 @@ DriverEntry(
 		g_FilterInfo.pFilter,
 		&g_FilterInfo.pServerPort,
 		&oa,
-		NULL,
+		nullptr,
 		(PFLT_CONNECT_NOTIFY)MFDPortConnect,
 		(PFLT_DISCONNECT_NOTIFY)MFDPortDisconnect,
 		(PFLT_MESSAGE_NOTIFY)MFDPortMessage,
@@ -211,12 +211,12 @@ DriverEntry(
 	return status;
 
 _RET:
-	if (NULL != g_FilterInfo.pServerPort)
+	if (nullptr != g_FilterInfo.pServerPort)
 	{
 		FltCloseCommunicationPort(g_FilterInfo.pServerPort);
 	}
 
-	if (NULL != g_FilterInfo.pFilter)
+	if (nullptr != g_FilterInfo.pFilter)
 	{
 		FltUnregisterFilter(g_FilterInfo.pFilter);
 	}

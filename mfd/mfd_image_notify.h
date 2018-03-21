@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-	VOID
+	void
 	MFDLoadImageNotifyRoutine(
 		_In_ PUNICODE_STRING puniFullImageName,
 		_In_ HANDLE hProcessId,

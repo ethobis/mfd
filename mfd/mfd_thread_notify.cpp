@@ -1,193 +1,132 @@
 #include "mfd_thread_notify.h"
 
-ACTIVE_THREAD_HEAD ActiveThreadHead = { NULL, };
+ACTIVE_THREAD_HEAD ActiveThread = { 0, };
 
-VOID
+void
 MFDInsertActiveThread(
 	_In_ PACTIVE_THREAD pActiveThread
 )
 {
 	KeEnterCriticalRegion();
-	ExAcquireResourceExclusiveLite(&ActiveThreadHead.Resource, TRUE);
+	ExAcquireResourceExclusiveLite(&ActiveThread.Resource, true);
 
-	InsertTailList(&ActiveThreadHead.ActiveThreadListHead, &pActiveThread->ActiveThreadList);
-	ActiveThreadHead.NumberOfActiveThread++;
+	InsertTailList(&ActiveThread.ActiveThreadListHead, &pActiveThread->ActiveThreadList);
+	ActiveThread.NumberOfActiveThread++;
 
-	ExReleaseResourceLite(&ActiveThreadHead.Resource);
+	ExReleaseResourceLite(&ActiveThread.Resource);
 	KeLeaveCriticalRegion();
 
-	return;
-}
-
-PACTIVE_THREAD
-MFDAcquireActiveThread(
-	_In_ PETHREAD pActiveThread
-)
-{
-	PLIST_ENTRY pThreadListEntry = NULL;
-	PACTIVE_THREAD pSearchActiveThread = NULL;
-	PACTIVE_THREAD pRetActiveThread = NULL;
-
-	KeEnterCriticalRegion();
-	ExAcquireResourceExclusiveLite(&ActiveThreadHead.Resource, TRUE);
-
-	if (IsListEmpty(&ActiveThreadHead.ActiveThreadListHead))
-	{
-		goto _RET;
-	}
-
-	for (pThreadListEntry = ActiveThreadHead.ActiveThreadListHead.Flink;
-		pThreadListEntry && (pThreadListEntry != &ActiveThreadHead.ActiveThreadListHead); pThreadListEntry = pThreadListEntry->Flink)
-	{
-		pSearchActiveThread = CONTAINING_RECORD(pThreadListEntry, ACTIVE_THREAD, ActiveThreadList);
-
-		if (pSearchActiveThread->Thread == pActiveThread)
-		{
-			pRetActiveThread = pSearchActiveThread;
-			ActiveThreadHead.bAcquired = TRUE;
-			break;
-		}
-	}
-
-_RET:
-	if (NULL == pRetActiveThread)
-	{
-		ExReleaseResourceLite(&ActiveThreadHead.Resource);
-		KeLeaveCriticalRegion();
-	}
-
-	return pRetActiveThread;
-}
-
-VOID
-MFDReleaseActiveThread(VOID)
-{
-	if (ActiveThreadHead.bAcquired)
-	{
-		ActiveThreadHead.bAcquired = FALSE;
-		ExReleaseResourceLite(&ActiveThreadHead.Resource);
-		KeLeaveCriticalRegion();
-	}
-	
 	return;
 }
 
 PACTIVE_THREAD
 MFDDeleteActiveThread(
-	_In_ PETHREAD pDeleteThread
+	_In_ ULONG_PTR ulptrThreadId
 )
 {
-	PLIST_ENTRY pThreadListEntry = NULL;
-	PACTIVE_THREAD pSearchActiveThread = NULL;
-	PACTIVE_THREAD pRetActiveThread = NULL;
+	PLIST_ENTRY pThreadListEntry = nullptr;
+	PACTIVE_THREAD pSearchActiveThread = nullptr;
+	PACTIVE_THREAD pRetActiveThread = nullptr;
 
 	KeEnterCriticalRegion();
-	ExAcquireResourceExclusiveLite(&ActiveThreadHead.Resource, TRUE);
+	ExAcquireResourceExclusiveLite(&ActiveThread.Resource, true);
 
-	if (IsListEmpty(&ActiveThreadHead.ActiveThreadListHead))
+	if (IsListEmpty(&ActiveThread.ActiveThreadListHead))
 	{
 		goto _RET;
 	}
 
-	for (pThreadListEntry = ActiveThreadHead.ActiveThreadListHead.Flink;
-		pThreadListEntry && (pThreadListEntry != &ActiveThreadHead.ActiveThreadListHead); pThreadListEntry = pThreadListEntry->Flink)
+	for (pThreadListEntry = ActiveThread.ActiveThreadListHead.Flink;
+		pThreadListEntry && (pThreadListEntry != &ActiveThread.ActiveThreadListHead); pThreadListEntry = pThreadListEntry->Flink)
 	{
 		pSearchActiveThread = CONTAINING_RECORD(pThreadListEntry, ACTIVE_THREAD, ActiveThreadList);
 
-		if (pSearchActiveThread->Thread == pDeleteThread)
+		if (pSearchActiveThread->ulptrThreadId == ulptrThreadId)
 		{
 			(pThreadListEntry->Blink)->Flink = pThreadListEntry->Flink;
 			(pThreadListEntry->Flink)->Blink = pThreadListEntry->Blink;
 			pRetActiveThread = pSearchActiveThread;
-			ActiveThreadHead.NumberOfActiveThread--;
+			ActiveThread.NumberOfActiveThread--;
 			break;
 		}
 	}
 
 _RET:
-	ExReleaseResourceLite(&ActiveThreadHead.Resource);
+	ExReleaseResourceLite(&ActiveThread.Resource);
 	KeLeaveCriticalRegion();
 	return pRetActiveThread;
 }
 
-VOID
-MFDDeleteAllThread(VOID)
+void
+MFDDeleteAllThread(void)
 {
-	PLIST_ENTRY pDeleteActiveThreadList = NULL;
-	PACTIVE_THREAD pDeleteActiveThread = NULL;
+	PLIST_ENTRY pDeleteActiveThreadList = nullptr;
+	PACTIVE_THREAD pDeleteActiveThread = nullptr;
 
 	KeEnterCriticalRegion();
-	ExAcquireResourceExclusiveLite(&ActiveThreadHead.Resource, TRUE);
+	ExAcquireResourceExclusiveLite(&ActiveThread.Resource, true);
 
-	if (IsListEmpty(&ActiveThreadHead.ActiveThreadListHead))
+	if (IsListEmpty(&ActiveThread.ActiveThreadListHead))
 	{
 		goto _RET;
 	}
 
-	pDeleteActiveThreadList = RemoveHeadList(&ActiveThreadHead.ActiveThreadListHead);
+	pDeleteActiveThreadList = RemoveHeadList(&ActiveThread.ActiveThreadListHead);
 
 	do
 	{
-		if (NULL != pDeleteActiveThreadList)
+		if (nullptr != pDeleteActiveThreadList)
 		{
 			pDeleteActiveThread = CONTAINING_RECORD(pDeleteActiveThreadList, ACTIVE_THREAD, ActiveThreadList);
 
-			if (NULL != pDeleteActiveThread)
+			if (nullptr != pDeleteActiveThread)
 			{
-				ExFreeToNPagedLookasideList(&ActiveThreadHead.ThreadNPLookasideList, pDeleteActiveThread);
-				pDeleteActiveThread = NULL;
+				ExFreePool(pDeleteActiveThread);
+				pDeleteActiveThread = nullptr;
 			}
 		}
-		pDeleteActiveThreadList = RemoveHeadList(&ActiveThreadHead.ActiveThreadListHead);
-	} while (pDeleteActiveThreadList && (pDeleteActiveThreadList != &ActiveThreadHead.ActiveThreadListHead));
+		pDeleteActiveThreadList = RemoveHeadList(&ActiveThread.ActiveThreadListHead);
+	} while (pDeleteActiveThreadList && (pDeleteActiveThreadList != &ActiveThread.ActiveThreadListHead));
 
 _RET:
-	ExReleaseResourceLite(&ActiveThreadHead.Resource);
+	ExReleaseResourceLite(&ActiveThread.Resource);
 	KeLeaveCriticalRegion();
 	return ;
 }
 
-VOID
+void
 MFDThreadNotifyRoutine(
 	_In_ HANDLE hProcessId,
 	_In_ HANDLE hThreadId,
 	_In_ BOOLEAN bCreate
 )
 {
-	NTSTATUS status = STATUS_SUCCESS;
-	PACTIVE_THREAD pActiveThread = NULL;
-	PETHREAD pThreadLookupByTid = NULL;
+	PACTIVE_THREAD pActiveThread = nullptr;
 
 	UNREFERENCED_PARAMETER(hProcessId);
 
-	status = PsLookupThreadByThreadId(hThreadId, &pThreadLookupByTid);
-
-	if (!NT_SUCCESS(status))
-	{
-		goto _RET;
-	}
 
 	if (bCreate)
 	{
-		pActiveThread = (PACTIVE_THREAD)ExAllocateFromNPagedLookasideList(&ActiveThreadHead.ThreadNPLookasideList);
+		pActiveThread = (PACTIVE_THREAD)ExAllocatePool(NonPagedPool, sizeof(ACTIVE_THREAD));
 
-		if (NULL == pActiveThread)
+		if (nullptr == pActiveThread)
 		{
 			goto _RET;
 		}
 
-		RtlZeroMemory(pActiveThread, sizeof(ACTIVE_THREAD));		
-		pActiveThread->Thread = pThreadLookupByTid;	
+		RtlZeroMemory(pActiveThread, sizeof(ACTIVE_THREAD));
+		pActiveThread->ulptrThreadId = (ULONG_PTR)hThreadId;
 		MFDInsertActiveThread(pActiveThread);
 	}
 	else
 	{
-		pActiveThread = MFDDeleteActiveThread(pThreadLookupByTid);
+		pActiveThread = MFDDeleteActiveThread((ULONG_PTR)hThreadId);
 
-		if (NULL != pActiveThread)
+		if (nullptr != pActiveThread)
 		{
-			ExFreeToNPagedLookasideList(&ActiveThreadHead.ThreadNPLookasideList, pActiveThread);
-			pActiveThread = NULL;
+			ExFreePool(pActiveThread);
+			pActiveThread = nullptr;
 		}
 	}	
 
@@ -202,7 +141,7 @@ MFDSetThreadNotifyRoutine(
 {
 	NTSTATUS status = STATUS_UNSUCCESSFUL;
 
-	if (NULL == pvThreadNotifyRoutine)
+	if (nullptr == pvThreadNotifyRoutine)
 	{
 		goto _RET;
 	}
@@ -214,9 +153,8 @@ MFDSetThreadNotifyRoutine(
 		goto _RET;
 	}
 
-	InitializeListHead(&ActiveThreadHead.ActiveThreadListHead);
-	ExInitializeResourceLite(&ActiveThreadHead.Resource);
-	ExInitializeNPagedLookasideList(&ActiveThreadHead.ThreadNPLookasideList, NULL, NULL, 0, sizeof(ACTIVE_THREAD), 0, 0);
+	InitializeListHead(&ActiveThread.ActiveThreadListHead);
+	ExInitializeResourceLite(&ActiveThread.Resource);
 
 _RET:
 	return status;
@@ -229,7 +167,7 @@ MFDRemoveThreadNotifyRoutine(
 {
 	NTSTATUS status = STATUS_UNSUCCESSFUL;
 
-	if (NULL == pvThreadNotifyRoutine)
+	if (nullptr == pvThreadNotifyRoutine)
 	{
 		goto _RET;
 	}
@@ -241,8 +179,7 @@ MFDRemoveThreadNotifyRoutine(
 		goto _RET;
 	}
 
-	ExDeleteResourceLite(&ActiveThreadHead.Resource);
-	ExDeleteNPagedLookasideList(&ActiveThreadHead.ThreadNPLookasideList);
+	ExDeleteResourceLite(&ActiveThread.Resource);
 
 _RET:
 	return status;

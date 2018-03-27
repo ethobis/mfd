@@ -113,7 +113,6 @@
     <FilesToPackage Include="@(Inf->'%(CopyOutput)')" Condition="'@(Inf)'!=''" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\mfd-common\PE32.cpp" />
     <ClCompile Include="mfd.cpp" />
     <ClCompile Include="mfd_context.cpp" />
     <ClCompile Include="mfd_filesystem.cpp" />
@@ -125,7 +124,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\mfd-common\mfd_common.h" />
-    <ClInclude Include="..\mfd-common\PE32.h" />
+    <ClInclude Include="..\mfd-common\PE.h" />
     <ClInclude Include="mfd.h" />
     <ClInclude Include="mfd_context.h" />
     <ClInclude Include="mfd_filesystem.h" />

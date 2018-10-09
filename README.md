@@ -1,2 +1,2 @@
 # mfd
-filesystem minifilter driver (skeleton code)
+filesystem minifilter driver

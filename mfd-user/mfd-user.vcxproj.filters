@@ -23,9 +23,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mfd-user.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="..\mfd-common\mfd_common.h">
       <Filter>공통 파일</Filter>
     </ClInclude>

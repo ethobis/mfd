@@ -1,11 +1,5 @@
-#pragma once
-#pragma warning(push)
-#pragma warning(disable:4510)
-#pragma warning(disable:4512)
-#pragma warning(disable:4610)
-#include <fltKernel.h>
-#pragma warning(pop)
-#pragma optimize("", off)
+#ifdef _KERNEL_MODE
+#include <ntddk.h>
 
 #define IMAGE_DOS_SIGNATURE 0x5A4D
 #define IMAGE_OS2_SIGNATURE 0x454E
@@ -13,45 +7,45 @@
 #define IMAGE_VXD_SIGNATURE 0x454C
 #define IMAGE_NT_SIGNATURE 0x00004550
 
-typedef struct _IMAGE_DOS_HEADER {			// DOS .EXE header
-	USHORT   e_magic;						// Magic number
-	USHORT   e_cblp;						// Bytes on last page of file
-	USHORT   e_cp;							// Pages in file
-	USHORT   e_crlc;						// Relocations
-	USHORT   e_cparhdr;						// Size of header in paragraphs
-	USHORT   e_minalloc;					// Minimum extra paragraphs needed
-	USHORT   e_maxalloc;					// Maximum extra paragraphs needed
-	USHORT   e_ss;							// Initial (relative) SS value
-	USHORT   e_sp;							// Initial SP value
-	USHORT   e_csum;						// Checksum
-	USHORT   e_ip;							// Initial IP value
-	USHORT   e_cs;							// Initial (relative) CS value
-	USHORT   e_lfarlc;						// File address of relocation table
-	USHORT   e_ovno;						// Overlay number
-	USHORT   e_res[4];						// Reserved words
-	USHORT   e_oemid;						// OEM identifier (for e_oeminfo)
-	USHORT   e_oeminfo;						// OEM information; e_oemid specific
-	USHORT   e_res2[10];					// Reserved words
-	LONG   e_lfanew;						// File address of new exe header
+typedef struct _IMAGE_DOS_HEADER {
+	USHORT e_magic;						// Magic number
+	USHORT e_cblp;						// Bytes on last page of file
+	USHORT e_cp;						// Pages in file
+	USHORT e_crlc;						// Relocations
+	USHORT e_cparhdr;					// Size of header in paragraphs
+	USHORT e_minalloc;					// Minimum extra paragraphs needed
+	USHORT e_maxalloc;					// Maximum extra paragraphs needed
+	USHORT e_ss;						// Initial (relative) SS value
+	USHORT e_sp;						// Initial SP value
+	USHORT e_csum;						// Checksum
+	USHORT e_ip;						// Initial IP value
+	USHORT e_cs;						// Initial (relative) CS value
+	USHORT e_lfarlc;					// File address of relocation table
+	USHORT e_ovno;						// Overlay number
+	USHORT e_res[4];					// Reserved words
+	USHORT e_oemid;						// OEM identifier (for e_oeminfo)
+	USHORT e_oeminfo;					// OEM information; e_oemid specific
+	USHORT e_res2[10];					// Reserved words
+	LONG e_lfanew;						// File address of new exe header
 } IMAGE_DOS_HEADER, *PIMAGE_DOS_HEADER;
 
 typedef struct _IMAGE_FILE_HEADER {
-	USHORT    Machine;
-	USHORT    NumberOfSections;
-	ULONG   TimeDateStamp;
-	ULONG   PointerToSymbolTable;
-	ULONG   NumberOfSymbols;
-	USHORT    SizeOfOptionalHeader;
-	USHORT    Characteristics;
+	USHORT Machine;
+	USHORT NumberOfSections;
+	ULONG TimeDateStamp;
+	ULONG PointerToSymbolTable;
+	ULONG NumberOfSymbols;
+	USHORT SizeOfOptionalHeader;
+	USHORT Characteristics;
 } IMAGE_FILE_HEADER, *PIMAGE_FILE_HEADER;
 
 #define IMAGE_SIZEOF_FILE_HEADER             20
 
 #define IMAGE_FILE_RELOCS_STRIPPED           0x0001  // Relocation info stripped from file.
-#define IMAGE_FILE_EXECUTABLE_IMAGE          0x0002  // File is executable  (i.e. no unresolved externel references).
-#define IMAGE_FILE_LINE_NUMS_STRIPPED        0x0004  // Line nunbers stripped from file.
+#define IMAGE_FILE_EXECUTABLE_IMAGE          0x0002  // File is executable  (i.e. no unresolved external references).
+#define IMAGE_FILE_LINE_NUMS_STRIPPED        0x0004  // Line numbers stripped from file.
 #define IMAGE_FILE_LOCAL_SYMS_STRIPPED       0x0008  // Local symbols stripped from file.
-#define IMAGE_FILE_AGGRESIVE_WS_TRIM         0x0010  // Agressively trim working set
+#define IMAGE_FILE_AGGRESIVE_WS_TRIM         0x0010  // Aggressively trim working set
 #define IMAGE_FILE_LARGE_ADDRESS_AWARE       0x0020  // App can handle >2gb addresses
 #define IMAGE_FILE_BYTES_REVERSED_LO         0x0080  // Bytes of machine word are reversed.
 #define IMAGE_FILE_32BIT_MACHINE             0x0100  // 32 bit word machine.
@@ -86,7 +80,7 @@ typedef struct _IMAGE_FILE_HEADER {
 #define IMAGE_FILE_MACHINE_MIPSFPU           0x0366  // MIPS
 #define IMAGE_FILE_MACHINE_MIPSFPU16         0x0466  // MIPS
 #define IMAGE_FILE_MACHINE_AXP64             IMAGE_FILE_MACHINE_ALPHA64
-#define IMAGE_FILE_MACHINE_TRICORE           0x0520  // Infineon
+#define IMAGE_FILE_MACHINE_TRICORE           0x0520
 #define IMAGE_FILE_MACHINE_CEF               0x0CEF
 #define IMAGE_FILE_MACHINE_EBC               0x0EBC  // EFI Byte Code
 #define IMAGE_FILE_MACHINE_AMD64             0x8664  // AMD64 (K8)
@@ -94,8 +88,8 @@ typedef struct _IMAGE_FILE_HEADER {
 #define IMAGE_FILE_MACHINE_CEE               0xC0EE
 
 typedef struct _IMAGE_DATA_DIRECTORY {
-	ULONG   VirtualAddress;
-	ULONG   Size;
+	ULONG VirtualAddress;
+	ULONG Size;
 } IMAGE_DATA_DIRECTORY, *PIMAGE_DATA_DIRECTORY;
 
 #define IMAGE_NUMBEROF_DIRECTORY_ENTRIES    16
@@ -109,74 +103,74 @@ typedef struct _IMAGE_OPTIONAL_HEADER {
 	// Standard fields.
 	//
 
-	USHORT    Magic;
-	UCHAR    MajorLinkerVersion;
-	UCHAR    MinorLinkerVersion;
-	ULONG   SizeOfCode;
-	ULONG   SizeOfInitializedData;
-	ULONG   SizeOfUninitializedData;
-	ULONG   AddressOfEntryPoint;
-	ULONG   BaseOfCode;
-	ULONG   BaseOfData;
+	USHORT Magic;
+	UCHAR MajorLinkerVersion;
+	UCHAR MinorLinkerVersion;
+	ULONG SizeOfCode;
+	ULONG SizeOfInitializedData;
+	ULONG SizeOfUninitializedData;
+	ULONG AddressOfEntryPoint;
+	ULONG BaseOfCode;
+	ULONG BaseOfData;
 
 	//
 	// NT additional fields.
 	//
 
-	ULONG   ImageBase;
-	ULONG   SectionAlignment;
-	ULONG   FileAlignment;
-	USHORT    MajorOperatingSystemVersion;
-	USHORT    MinorOperatingSystemVersion;
-	USHORT    MajorImageVersion;
-	USHORT    MinorImageVersion;
-	USHORT    MajorSubsystemVersion;
-	USHORT    MinorSubsystemVersion;
-	ULONG   Win32VersionValue;
-	ULONG   SizeOfImage;
-	ULONG   SizeOfHeaders;
-	ULONG   CheckSum;
-	USHORT    Subsystem;
-	USHORT    DllCharacteristics;
-	ULONG   SizeOfStackReserve;
-	ULONG   SizeOfStackCommit;
-	ULONG   SizeOfHeapReserve;
-	ULONG   SizeOfHeapCommit;
-	ULONG   LoaderFlags;
-	ULONG   NumberOfRvaAndSizes;
+	ULONG ImageBase;
+	ULONG SectionAlignment;
+	ULONG FileAlignment;
+	USHORT MajorOperatingSystemVersion;
+	USHORT MinorOperatingSystemVersion;
+	USHORT MajorImageVersion;
+	USHORT MinorImageVersion;
+	USHORT MajorSubsystemVersion;
+	USHORT MinorSubsystemVersion;
+	ULONG Win32VersionValue;
+	ULONG SizeOfImage;
+	ULONG SizeOfHeaders;
+	ULONG CheckSum;
+	USHORT Subsystem;
+	USHORT DllCharacteristics;
+	ULONG SizeOfStackReserve;
+	ULONG SizeOfStackCommit;
+	ULONG SizeOfHeapReserve;
+	ULONG SizeOfHeapCommit;
+	ULONG LoaderFlags;
+	ULONG NumberOfRvaAndSizes;
 	IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
 } IMAGE_OPTIONAL_HEADER32, *PIMAGE_OPTIONAL_HEADER32;
 
 typedef struct _IMAGE_OPTIONAL_HEADER64 {
-	USHORT        Magic;
-	UCHAR        MajorLinkerVersion;
-	UCHAR        MinorLinkerVersion;
-	ULONG       SizeOfCode;
-	ULONG       SizeOfInitializedData;
-	ULONG       SizeOfUninitializedData;
-	ULONG       AddressOfEntryPoint;
-	ULONG       BaseOfCode;
-	ULONGLONG   ImageBase;
-	ULONG       SectionAlignment;
-	ULONG       FileAlignment;
-	USHORT        MajorOperatingSystemVersion;
-	USHORT        MinorOperatingSystemVersion;
-	USHORT        MajorImageVersion;
-	USHORT        MinorImageVersion;
-	USHORT        MajorSubsystemVersion;
-	USHORT        MinorSubsystemVersion;
-	ULONG       Win32VersionValue;
-	ULONG       SizeOfImage;
-	ULONG       SizeOfHeaders;
-	ULONG       CheckSum;
-	USHORT        Subsystem;
-	USHORT        DllCharacteristics;
-	ULONGLONG   SizeOfStackReserve;
-	ULONGLONG   SizeOfStackCommit;
-	ULONGLONG   SizeOfHeapReserve;
-	ULONGLONG   SizeOfHeapCommit;
-	ULONG       LoaderFlags;
-	ULONG       NumberOfRvaAndSizes;
+	USHORT Magic;
+	UCHAR MajorLinkerVersion;
+	UCHAR MinorLinkerVersion;
+	ULONG SizeOfCode;
+	ULONG SizeOfInitializedData;
+	ULONG SizeOfUninitializedData;
+	ULONG AddressOfEntryPoint;
+	ULONG BaseOfCode;
+	ULONGLONG ImageBase;
+	ULONG SectionAlignment;
+	ULONG FileAlignment;
+	USHORT MajorOperatingSystemVersion;
+	USHORT MinorOperatingSystemVersion;
+	USHORT MajorImageVersion;
+	USHORT MinorImageVersion;
+	USHORT MajorSubsystemVersion;
+	USHORT MinorSubsystemVersion;
+	ULONG Win32VersionValue;
+	ULONG SizeOfImage;
+	ULONG SizeOfHeaders;
+	ULONG CheckSum;
+	USHORT Subsystem;
+	USHORT DllCharacteristics;
+	ULONGLONG SizeOfStackReserve;
+	ULONGLONG SizeOfStackCommit;
+	ULONGLONG SizeOfHeapReserve;
+	ULONGLONG SizeOfHeapCommit;
+	ULONG LoaderFlags;
+	ULONG NumberOfRvaAndSizes;
 	IMAGE_DATA_DIRECTORY DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
 } IMAGE_OPTIONAL_HEADER64, *PIMAGE_OPTIONAL_HEADER64;
 
@@ -191,7 +185,6 @@ typedef struct _IMAGE_NT_HEADERS {
 	IMAGE_FILE_HEADER FileHeader;
 	IMAGE_OPTIONAL_HEADER32 OptionalHeader;
 } IMAGE_NT_HEADERS32, *PIMAGE_NT_HEADERS32;
-
 
 #define IMAGE_NT_OPTIONAL_HDR32_MAGIC      0x10b
 #define IMAGE_NT_OPTIONAL_HDR64_MAGIC      0x20b
@@ -211,9 +204,6 @@ typedef PIMAGE_NT_HEADERS32					PIMAGE_NT_HEADERS;
 typedef IMAGE_NT_HEADERS32					IMAGE_NT_HEADERS;
 #endif
 
-
-
-
 // IMAGE_FIRST_SECTION doesn't need 32/64 versions since the file header is the same either way.
 
 #define IMAGE_FIRST_SECTION( ntheader ) ((PIMAGE_SECTION_HEADER)        \
@@ -224,37 +214,36 @@ typedef IMAGE_NT_HEADERS32					IMAGE_NT_HEADERS;
 
 // Subsystem Values
 
-#define IMAGE_SUBSYSTEM_UNKNOWN              0   // Unknown subsystem.
-#define IMAGE_SUBSYSTEM_NATIVE               1   // Image doesn't require a subsystem.
-#define IMAGE_SUBSYSTEM_WINDOWS_GUI          2   // Image runs in the Windows GUI subsystem.
-#define IMAGE_SUBSYSTEM_WINDOWS_CUI          3   // Image runs in the Windows character subsystem.
-#define IMAGE_SUBSYSTEM_OS2_CUI              5   // image runs in the OS/2 character subsystem.
-#define IMAGE_SUBSYSTEM_POSIX_CUI            7   // image runs in the Posix character subsystem.
-#define IMAGE_SUBSYSTEM_NATIVE_WINDOWS       8   // image is a native Win9x driver.
-#define IMAGE_SUBSYSTEM_WINDOWS_CE_GUI       9   // Image runs in the Windows CE subsystem.
-#define IMAGE_SUBSYSTEM_EFI_APPLICATION      10  //
-#define IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER  11   //
-#define IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER   12  //
-#define IMAGE_SUBSYSTEM_EFI_ROM              13
-#define IMAGE_SUBSYSTEM_XBOX                 14
-#define IMAGE_SUBSYSTEM_WINDOWS_BOOT_APPLICATION 16
+#define IMAGE_SUBSYSTEM_UNKNOWN						0   // Unknown subsystem.
+#define IMAGE_SUBSYSTEM_NATIVE						1   // Image doesn't require a subsystem.
+#define IMAGE_SUBSYSTEM_WINDOWS_GUI					2   // Image runs in the Windows GUI subsystem.
+#define IMAGE_SUBSYSTEM_WINDOWS_CUI					3   // Image runs in the Windows character subsystem.
+#define IMAGE_SUBSYSTEM_OS2_CUI						5   // image runs in the OS/2 character subsystem.
+#define IMAGE_SUBSYSTEM_POSIX_CUI					7   // image runs in the POSIX character subsystem.
+#define IMAGE_SUBSYSTEM_NATIVE_WINDOWS				8   // image is a native Win9x driver.
+#define IMAGE_SUBSYSTEM_WINDOWS_CE_GUI				9   // Image runs in the Windows CE subsystem.
+#define IMAGE_SUBSYSTEM_EFI_APPLICATION				10
+#define IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER		11
+#define IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER			12
+#define IMAGE_SUBSYSTEM_EFI_ROM						13
+#define IMAGE_SUBSYSTEM_XBOX						14
+#define IMAGE_SUBSYSTEM_WINDOWS_BOOT_APPLICATION	16
 
 // DllCharacteristics Entries
-
-//      IMAGE_LIBRARY_PROCESS_INIT            0x0001     // Reserved.
-//      IMAGE_LIBRARY_PROCESS_TERM            0x0002     // Reserved.
-//      IMAGE_LIBRARY_THREAD_INIT             0x0004     // Reserved.
-//      IMAGE_LIBRARY_THREAD_TERM             0x0008     // Reserved.
-#define IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE 0x0040     // DLL can move.
-#define IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY    0x0080     // Code Integrity Image
-#define IMAGE_DLLCHARACTERISTICS_NX_COMPAT    0x0100     // Image is NX compatible
-#define IMAGE_DLLCHARACTERISTICS_NO_ISOLATION 0x0200     // Image understands isolation and doesn't want it
-#define IMAGE_DLLCHARACTERISTICS_NO_SEH       0x0400     // Image does not use SEH.  No SE handler may reside in this image
-#define IMAGE_DLLCHARACTERISTICS_NO_BIND      0x0800     // Do not bind this image.
-//                                            0x1000     // Reserved.
-#define IMAGE_DLLCHARACTERISTICS_WDM_DRIVER   0x2000     // Driver uses WDM model
-//                                            0x4000     // Reserved.
-#define IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE     0x8000
+//      IMAGE_LIBRARY_PROCESS_INIT						0x0001     // Reserved.
+//      IMAGE_LIBRARY_PROCESS_TERM						0x0002     // Reserved.
+//      IMAGE_LIBRARY_THREAD_INIT						0x0004     // Reserved.
+//      IMAGE_LIBRARY_THREAD_TERM						0x0008     // Reserved.
+#define IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE			0x0040     // DLL can move.
+#define IMAGE_DLLCHARACTERISTICS_FORCE_INTEGRITY		0x0080     // Code Integrity Image
+#define IMAGE_DLLCHARACTERISTICS_NX_COMPAT				0x0100     // Image is NX compatible
+#define IMAGE_DLLCHARACTERISTICS_NO_ISOLATION			0x0200     // Image understands isolation and doesn't want it
+#define IMAGE_DLLCHARACTERISTICS_NO_SEH					0x0400     // Image does not use SEH.  No SE handler may reside in this image
+#define IMAGE_DLLCHARACTERISTICS_NO_BIND				0x0800     // Do not bind this image.
+//														0x1000     // Reserved.
+#define IMAGE_DLLCHARACTERISTICS_WDM_DRIVER				0x2000     // Driver uses WDM model
+//														0x4000     // Reserved.
+#define IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE	0x8000
 
 // Directory Entries
 
@@ -278,19 +267,19 @@ typedef IMAGE_NT_HEADERS32					IMAGE_NT_HEADERS;
 #define IMAGE_SIZEOF_SHORT_NAME              8
 
 typedef struct _IMAGE_SECTION_HEADER {
-	UCHAR    Name[IMAGE_SIZEOF_SHORT_NAME];
+	UCHAR Name[IMAGE_SIZEOF_SHORT_NAME];
 	union {
-		ULONG   PhysicalAddress;
-		ULONG   VirtualSize;
-	} Misc;
-	ULONG   VirtualAddress;
-	ULONG   SizeOfRawData;
-	ULONG   PointerToRawData;
-	ULONG   PointerToRelocations;
-	ULONG   PointerToLinenumbers;
-	USHORT    NumberOfRelocations;
-	USHORT    NumberOfLinenumbers;
-	ULONG   Characteristics;
+		ULONG PhysicalAddress;
+		ULONG VirtualSize;
+	}Misc;
+	ULONG VirtualAddress;
+	ULONG SizeOfRawData;
+	ULONG PointerToRawData;
+	ULONG PointerToRelocations;
+	ULONG PointerToLinenumbers;
+	USHORT NumberOfRelocations;
+	USHORT NumberOfLinenumbers;
+	ULONG Characteristics;
 } IMAGE_SECTION_HEADER, *PIMAGE_SECTION_HEADER;
 
 #define IMAGE_SIZEOF_SECTION_HEADER          40
@@ -313,7 +302,7 @@ typedef struct _IMAGE_SECTION_HEADER {
 #define IMAGE_SCN_LNK_INFO                   0x00000200  // Section contains comments or some other type of information.
 //      IMAGE_SCN_TYPE_OVER                  0x00000400  // Reserved.
 #define IMAGE_SCN_LNK_REMOVE                 0x00000800  // Section contents will not become part of image.
-#define IMAGE_SCN_LNK_COMDAT                 0x00001000  // Section contents comdat.
+#define IMAGE_SCN_LNK_COMDAT                 0x00001000  // Section contents COMDAT.
 //                                           0x00002000  // Reserved.
 //      IMAGE_SCN_MEM_PROTECTED - Obsolete   0x00004000
 #define IMAGE_SCN_NO_DEFER_SPEC_EXC          0x00004000  // Reset speculative exceptions handling bits in the TLB entries for this section.
@@ -344,21 +333,21 @@ typedef struct _IMAGE_SECTION_HEADER {
 
 #define IMAGE_SCN_LNK_NRELOC_OVFL            0x01000000  // Section contains extended relocations.
 #define IMAGE_SCN_MEM_DISCARDABLE            0x02000000  // Section can be discarded.
-#define IMAGE_SCN_MEM_NOT_CACHED             0x04000000  // Section is not cachable.
+#define IMAGE_SCN_MEM_NOT_CACHED             0x04000000  // Section is not cacheable.
 #define IMAGE_SCN_MEM_NOT_PAGED              0x08000000  // Section is not pageable.
 #define IMAGE_SCN_MEM_SHARED                 0x10000000  // Section is shareable.
 #define IMAGE_SCN_MEM_EXECUTE                0x20000000  // Section is executable.
 #define IMAGE_SCN_MEM_READ                   0x40000000  // Section is readable.
-#define IMAGE_SCN_MEM_WRITE                  0x80000000  // Section is writeable.
+#define IMAGE_SCN_MEM_WRITE                  0x80000000  // Section is writable.
 
 //
 // Based relocation format.
 //
 
 typedef struct _IMAGE_BASE_RELOCATION {
-	ULONG   VirtualAddress;
-	ULONG   SizeOfBlock;
-	//  USHORT    TypeOffset[1];
+	ULONG VirtualAddress;
+	ULONG SizeOfBlock;
+//  USHORT TypeOffset[1];
 } IMAGE_BASE_RELOCATION;
 typedef IMAGE_BASE_RELOCATION UNALIGNED * PIMAGE_BASE_RELOCATION;
 
@@ -383,42 +372,44 @@ typedef struct _IMAGE_IMPORT_BY_NAME {
 
 typedef struct _IMAGE_IMPORT_DESCRIPTOR {
 	union {
-		ULONG   Characteristics;            // 0 for terminating null import descriptor
-		ULONG   OriginalFirstThunk;         // RVA to original unbound IAT (PIMAGE_THUNK_DATA)
+		ULONG Characteristics;            // 0 for terminating null import descriptor
+		ULONG OriginalFirstThunk;         // RVA to original unbound IAT (PIMAGE_THUNK_DATA)
 	} DUMMYUNIONNAME;
-	ULONG   TimeDateStamp;                  // 0 if not bound,
+	ULONG TimeDateStamp;                  // 0 if not bound,
+
 	// -1 if bound, and real date\time stamp
 	//     in IMAGE_DIRECTORY_ENTRY_BOUND_IMPORT (new BIND)
 	// O.W. date/time stamp of DLL bound to (Old BIND)
 
-	ULONG   ForwarderChain;                 // -1 if no forwarders
-	ULONG   Name;
-	ULONG   FirstThunk;                     // RVA to IAT (if bound this IAT has actual addresses)
+	ULONG ForwarderChain;                 // -1 if no forwarders
+	ULONG Name;
+	ULONG FirstThunk;                     // RVA to IAT (if bound this IAT has actual addresses)
 } IMAGE_IMPORT_DESCRIPTOR;
+
 typedef IMAGE_IMPORT_DESCRIPTOR UNALIGNED *PIMAGE_IMPORT_DESCRIPTOR;
 
 typedef struct _IMAGE_EXPORT_DIRECTORY {
-	ULONG   Characteristics;
-	ULONG   TimeDateStamp;
-	USHORT    MajorVersion;
-	USHORT    MinorVersion;
-	ULONG   Name;
-	ULONG   Base;
-	ULONG   NumberOfFunctions;
-	ULONG   NumberOfNames;
-	ULONG   AddressOfFunctions;     // RVA from base of image
-	ULONG   AddressOfNames;         // RVA from base of image
-	ULONG   AddressOfNameOrdinals;  // RVA from base of image
+	ULONG Characteristics;
+	ULONG TimeDateStamp;
+	USHORT MajorVersion;
+	USHORT MinorVersion;
+	ULONG Name;
+	ULONG Base;
+	ULONG NumberOfFunctions;
+	ULONG NumberOfNames;
+	ULONG AddressOfFunctions;     // RVA from base of image
+	ULONG AddressOfNames;         // RVA from base of image
+	ULONG AddressOfNameOrdinals;  // RVA from base of image
 } IMAGE_EXPORT_DIRECTORY, *PIMAGE_EXPORT_DIRECTORY;
 
 typedef struct _IMAGE_RESOURCE_DIRECTORY {
-	ULONG   Characteristics;
-	ULONG   TimeDateStamp;
-	USHORT  MajorVersion;
-	USHORT  MinorVersion;
-	USHORT  NumberOfNamedEntries;
-	USHORT  NumberOfIdEntries;
-	//  IMAGE_RESOURCE_DIRECTORY_ENTRY DirectoryEntries[];
+	ULONG Characteristics;
+	ULONG TimeDateStamp;
+	USHORT MajorVersion;
+	USHORT MinorVersion;
+	USHORT NumberOfNamedEntries;
+	USHORT NumberOfIdEntries;
+//  IMAGE_RESOURCE_DIRECTORY_ENTRY DirectoryEntries[];
 } IMAGE_RESOURCE_DIRECTORY, *PIMAGE_RESOURCE_DIRECTORY;
 
 typedef struct _IMAGE_RESOURCE_DIRECTORY_ENTRY {
@@ -429,14 +420,14 @@ typedef struct _IMAGE_RESOURCE_DIRECTORY_ENTRY {
 			ULONG NameOffset : 31;
 			ULONG NameIsString : 1;
 		};
-		ULONG   Name;
-		USHORT  Id;
+		ULONG Name;
+		USHORT Id;
 	};
 	union {
-		ULONG   OffsetToData;
+		ULONG OffsetToData;
 		struct {
-			ULONG   OffsetToDirectory : 31;
-			ULONG   DataIsDirectory : 1;
+			ULONG OffsetToDirectory : 31;
+			ULONG DataIsDirectory : 1;
 		};
 	};
 #pragma warning(pop)
@@ -450,28 +441,28 @@ typedef struct _IMAGE_RESOURCE_DIRECTORY_ENTRY {
 #define DEF_NT_HEADER_SIG		0x4550
 
 typedef struct _IMAGE_RESOURCE_DATA_ENTRY {
-	ULONG   OffsetToData;
-	ULONG   Size;
-	ULONG   CodePage;
-	ULONG   Reserved;
+	ULONG OffsetToData;
+	ULONG Size;
+	ULONG CodePage;
+	ULONG Reserved;
 } IMAGE_RESOURCE_DATA_ENTRY, *PIMAGE_RESOURCE_DATA_ENTRY;
 
 typedef struct tagVS_FIXEDFILEINFO
 {
-	ULONG   dwSignature;            /* e.g. 0xfeef04bd */
-	ULONG   dwStrucVersion;         /* e.g. 0x00000042 = "0.42" */
-	ULONG   dwFileVersionMS;        /* e.g. 0x00030075 = "3.75" */
-	ULONG   dwFileVersionLS;        /* e.g. 0x00000031 = "0.31" */
-	ULONG   dwProductVersionMS;     /* e.g. 0x00030010 = "3.10" */
-	ULONG   dwProductVersionLS;     /* e.g. 0x00000031 = "0.31" */
-	ULONG   dwFileFlagsMask;        /* = 0x3F for version "0.42" */
-	ULONG   dwFileFlags;            /* e.g. VFF_DEBUG | VFF_PRERELEASE */
-	ULONG   dwFileOS;               /* e.g. VOS_DOS_WINDOWS16 */
-	ULONG   dwFileType;             /* e.g. VFT_DRIVER */
-	ULONG   dwFileSubtype;          /* e.g. VFT2_DRV_KEYBOARD */
-	ULONG   dwFileDateMS;           /* e.g. 0 */
-	ULONG   dwFileDateLS;           /* e.g. 0 */
-} VS_FIXEDFILEINFO;
+	ULONG dwSignature;            /* e.g. 0xfeef04bd */
+	ULONG dwStrucVersion;         /* e.g. 0x00000042 = "0.42" */
+	ULONG dwFileVersionMS;        /* e.g. 0x00030075 = "3.75" */
+	ULONG dwFileVersionLS;        /* e.g. 0x00000031 = "0.31" */
+	ULONG dwProductVersionMS;     /* e.g. 0x00030010 = "3.10" */
+	ULONG dwProductVersionLS;     /* e.g. 0x00000031 = "0.31" */
+	ULONG dwFileFlagsMask;        /* = 0x3F for version "0.42" */
+	ULONG dwFileFlags;            /* e.g. VFF_DEBUG | VFF_PRERELEASE */
+	ULONG dwFileOS;               /* e.g. VOS_DOS_WINDOWS16 */
+	ULONG dwFileType;             /* e.g. VFT_DRIVER */
+	ULONG dwFileSubtype;          /* e.g. VFT2_DRV_KEYBOARD */
+	ULONG dwFileDateMS;           /* e.g. 0 */
+	ULONG dwFileDateLS;           /* e.g. 0 */
+}VS_FIXEDFILEINFO;
 
 #pragma pack(push, 1)
 typedef struct _VARFILEINFO
@@ -554,3 +545,4 @@ typedef struct _IMAGE_RESOURCE_DIR_STRING_U {
 #endif
 
 #define VS_VERSION_INFO 1
+#endif

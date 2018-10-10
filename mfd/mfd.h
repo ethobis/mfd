@@ -1,154 +1,139 @@
-#ifndef __MFD_H__
-#define __MFD_H__
-
-#pragma warning(push)
-#pragma warning(disable:4510)
-#pragma warning(disable:4512)
-#pragma warning(disable:4610)
-#include <fltKernel.h>
-#pragma warning(pop)
-#pragma optimize("", off)
-#include "mfd_pre_handler.h"
-#include "mfd_post_handler.h"
-#include "mfd_context.h"
 #include "..\mfd-common\mfd_common.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+EXTERN_C NTSTATUS FLTAPI MFDReceive(
+	_In_ PVOID pvConnectionCookie,
+	_In_ PVOID pvInputBuffer,
+	_In_ ULONG ulInputBufferSize,
+	_Out_ PVOID pvOutputBuffer,
+	_Out_ ULONG ulOutputBufferSize,
+	_Out_ PULONG pulRetOutputBufferSize
+);
 
-	NTSTATUS
-	FLTAPI MFDPortMessage(
-		_In_ PVOID pvConnectionCookie,
-		_In_ PVOID pvInputBuffer,
-		_In_ ULONG ulInputBufferSize,
-		_Out_ PVOID pvOutputBuffer,
-		_Out_ ULONG ulOutputBufferSize,
-		_Out_ PULONG pulRetOutputBufferSize
-	);
+EXTERN_C NTSTATUS FLTAPI MFDConnect(
+	_In_ PFLT_PORT pClientPort,
+	_In_ PVOID pvServerPortCookie,
+	_In_ PVOID pvConnectionContext,
+	_In_ ULONG ulSizeOfContext,
+	_In_ PVOID *pvConnectionCookie
+);
 
-	NTSTATUS
-	FLTAPI MFDPortConnect(
-		_In_ PFLT_PORT pClientPort,
-		_In_ PVOID pvServerPortCookie,
-		_In_ PVOID pvConnectionContext,
-		_In_ ULONG ulSizeOfContext,
-		_In_ PVOID *pvConnectionCookie
-	);
+EXTERN_C void FLTAPI MFDDisconnect(
+	_In_ PVOID pvConnectionCookie
+);
 
-	void
-	FLTAPI MFDPortDisconnect(
-		_In_ PVOID pvConnectionCookie
-	);
+FLT_PREOP_CALLBACK_STATUS FLTAPI MFDPreRoutine(
+	_Inout_ PFLT_CALLBACK_DATA pData,
+	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+	_Out_ PVOID *pCompletionContext
+);
 
-	NTSTATUS
-	FLTAPI MFDInstanceSetup(
-		_In_ PCFLT_RELATED_OBJECTS pFltObjects,
-		_In_ FLT_INSTANCE_SETUP_FLAGS Flags,
-		_In_ DEVICE_TYPE VolumeDeviceType,
-		_In_ FLT_FILESYSTEM_TYPE VolumeFilesystemType
-	);
+FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDPostRoutine(
+	_Inout_ PFLT_CALLBACK_DATA pData,
+	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+	_In_opt_ PVOID pCompletionContext,
+	_In_ FLT_POST_OPERATION_FLAGS Flags
+);
 
-	void
-	FLTAPI MFDInstanceTeardown(
-		_In_ PCFLT_RELATED_OBJECTS pFltObjects,
-		_In_ FLT_INSTANCE_TEARDOWN_FLAGS Reason
-	);
+EXTERN_C NTSTATUS FLTAPI MFDInstanceSetup(
+	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+	_In_ FLT_INSTANCE_SETUP_FLAGS Flags,
+	_In_ DEVICE_TYPE VolumeDeviceType,
+	_In_ FLT_FILESYSTEM_TYPE VolumeFilesystemType
+);
 
-	NTSTATUS
-	FLTAPI DriverUnload(
-		_In_ FLT_FILTER_UNLOAD_FLAGS Flags
-	);
+EXTERN_C void FLTAPI MFDInstanceTeardown(
+	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+	_In_ FLT_INSTANCE_TEARDOWN_FLAGS Reason
+);
 
-	NTSTATUS
-	DriverEntry(
-		_In_ PDRIVER_OBJECT pDriverObject,
-		_In_ PUNICODE_STRING puniRegistryPath
-	);
+EXTERN_C NTSTATUS FLTAPI DriverUnload(
+	_In_ FLT_FILTER_UNLOAD_FLAGS Flags
+);
 
-#ifdef __cplusplus
-}
-#endif
+EXTERN_C NTSTATUS DriverEntry(
+	_In_ PDRIVER_OBJECT pDriverObject,
+	_In_ PUNICODE_STRING puniRegistryPath
+);
 
 CONST FLT_OPERATION_REGISTRATION Callbacks[] =
 {
 	{
 		IRP_MJ_CREATE,
 		0,
-		MFDPreHandler,
-		MFDPostHandler
+		MFDPreRoutine,
+		MFDPostRoutine
 	},
 	{
 		IRP_MJ_READ,
 		0,
-		MFDPreHandler,
-		MFDPostHandler
+		MFDPreRoutine,
+		MFDPostRoutine
 	},
 	{
 		IRP_MJ_WRITE,
 		0,
-		MFDPreHandler,
-		MFDPostHandler
+		MFDPreRoutine,
+		MFDPostRoutine
 	},
 	{
 		IRP_MJ_QUERY_INFORMATION,
 		0,
-		MFDPreHandler, 
-		MFDPostHandler
+		MFDPreRoutine,
+		MFDPostRoutine
 	},
 	{
 		IRP_MJ_SET_INFORMATION,
 		0,
-		MFDPreHandler,
-		MFDPostHandler
+		MFDPreRoutine,
+		MFDPostRoutine
 	},
 	{
 		IRP_MJ_QUERY_VOLUME_INFORMATION,
 		0,
-		MFDPreHandler,
-		MFDPostHandler
+		MFDPreRoutine,
+		MFDPostRoutine
 	},
 	{
 		IRP_MJ_SET_VOLUME_INFORMATION,
 		0,
-		MFDPreHandler,
-		MFDPostHandler
+		MFDPreRoutine,
+		MFDPostRoutine
 	},
 	{
 		IRP_MJ_DIRECTORY_CONTROL,
 		0,
-		MFDPreHandler,
-		MFDPostHandler
+		MFDPreRoutine,
+		MFDPostRoutine
 	},
 	{
 		IRP_MJ_FILE_SYSTEM_CONTROL,
 		0,
-		MFDPreHandler,
-		MFDPostHandler
+		MFDPreRoutine,
+		MFDPostRoutine
 	},
 	{
 		IRP_MJ_DEVICE_CONTROL,
 		0,
-		MFDPreHandler,
-		MFDPostHandler
+		MFDPreRoutine,
+		MFDPostRoutine
 	},
 	{
 		IRP_MJ_INTERNAL_DEVICE_CONTROL,
 		0,
-		MFDPreHandler,
-		MFDPostHandler
+		MFDPreRoutine,
+		MFDPostRoutine
 	},
 	{
 		IRP_MJ_CLEANUP,
 		0,
-		MFDPreHandler,
-		MFDPostHandler
+		MFDPreRoutine,
+		MFDPostRoutine
 	},
 	{
 		IRP_MJ_SET_SECURITY,
 		0,
-		MFDPreHandler,
-		MFDPostHandler
+		MFDPreRoutine,
+		MFDPostRoutine
 	},
 	{ IRP_MJ_OPERATION_END }
 };
@@ -156,21 +141,11 @@ CONST FLT_OPERATION_REGISTRATION Callbacks[] =
 FLT_CONTEXT_REGISTRATION FilterContextRegistration[] =
 {
 	{
-		FLT_STREAM_CONTEXT,
-		0,
-		NULL,
-		sizeof(MFD_STREAM_CONTEXT),
-		'MFDS',
-		NULL,
-		NULL,
-		NULL
-	},
-	{
 		FLT_STREAMHANDLE_CONTEXT,
 		0,
 		NULL,
-		sizeof(MFD_STREAMHANDLE_CONTEXT),
-		'MFDH',
+		sizeof(FILTER_STREAMHANDLE_CONTEXT),
+		'CDFM',
 		NULL,
 		NULL,
 		NULL
@@ -196,5 +171,3 @@ FLT_REGISTRATION FilterRegistration =
 	NULL,
 	NULL
 };
-
-#endif

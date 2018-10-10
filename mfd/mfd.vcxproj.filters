@@ -25,57 +25,15 @@
     <ClCompile Include="mfd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mfd_context.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mfd_image_notify.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mfd_post_handler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mfd_pre_handler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mfd_process_notify.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mfd_thread_notify.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mfd_filesystem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mfd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mfd_context.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mfd_image_notify.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mfd_post_handler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mfd_pre_handler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mfd_process_notify.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mfd_thread_notify.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mfd_filesystem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\mfd-common\mfd_common.h">
       <Filter>Common Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\mfd-common\PE.h">
+    <ClInclude Include="..\mfd-common\mfd_pe_format.h">
       <Filter>Common Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,16 +1,30 @@
-#include "mfd-user.h"
+#include <stdio.h>
+#include <Windows.h>
+#include <process.h>
+#include <fltuser.h>
+#include "..\mfd-common\mfd_common.h"
+
+#define FILTER_REQUEST_COUNT 5
+#define FILTER_THREAD_COUNT 2
+#define FILTER_MAX_THREAD_COUNT 64
+
+typedef struct _FILTER_THREAD_CONTEXT
+{
+	HANDLE hPort;
+	HANDLE hCompletion;
+}FILTER_THREAD_CONTEXT, *PFILTER_THREAD_CONTEXT;
 
 UINT WINAPI
-FltWorkThread(
+FilterWorkThread(
 	_In_ PVOID FltWorkThreadContext
-	)
+)
 {
 	DWORD dwRetValue = 0;
 	PFILTER_NOTIFICATION pNotification = nullptr;
 	FILTER_REPLY_MESSAGE ReplyMessage = { 0, };
 	PFILTER_MESSAGE pMessage = nullptr;
 	LPOVERLAPPED pOvlp = nullptr;
-	BOOLEAN bRetValue = FALSE;
+	BOOL bRetValue = FALSE;
 	DWORD dwOutputSize = 0;
 	HRESULT hr;
 	ULONG_PTR ulptrKey = 0;
@@ -37,7 +51,7 @@ FltWorkThread(
 
 		pNotification = &(pMessage->Notification);
 
-		ReplyMessage.Reply.bContinueFileIRP = TRUE;
+		ReplyMessage.Reply.bReply = TRUE;
 		ReplyMessage.ReplyHeader.Status = 0;
 		ReplyMessage.ReplyHeader.MessageId = pMessage->Header.MessageId;
 
@@ -75,9 +89,10 @@ int main(int argc, char** argv)
 	ULONG ulIndex = 0;
 	ULONG ulRequestIndex = 0;
 	HRESULT hr;
-	HANDLE hPort = nullptr, hCompletion = nullptr;
-	DWORD dwThreadCount = FILTER_DEFAULT_THREAD_COUNT;
-	DWORD dwRequestCount = FILTER_DEFAULT_REQUEST_COUNT;
+	HANDLE hPort = nullptr;
+	HANDLE hCompletion = nullptr;
+	DWORD dwThreadCount = FILTER_THREAD_COUNT;
+	DWORD dwRequestCount = FILTER_REQUEST_COUNT;
 	HANDLE hThread[FILTER_MAX_THREAD_COUNT];
 	DWORD dwThreadId = 0;
 	FILTER_THREAD_CONTEXT Context = { nullptr, };
@@ -85,7 +100,7 @@ int main(int argc, char** argv)
 	DWORD dwRetValue = 0;
 
 	hr = FilterConnectCommunicationPort(
-		FLT_FILTER_NAME,
+		FILTER_NAME,
 		0,
 		nullptr,
 		0,
@@ -96,7 +111,7 @@ int main(int argc, char** argv)
 	if (IS_ERROR(hr))
 	{
 		hr = FilterConnectCommunicationPort(
-			FLT_FILTER_NAME,
+			FILTER_NAME,
 			0,	
 			nullptr,
 			0,
@@ -130,7 +145,7 @@ int main(int argc, char** argv)
 		hThread[ulIndex] = (HANDLE)_beginthreadex(
 			nullptr,
 			0,
-			FltWorkThread,
+			FilterWorkThread,
 			&Context,
 			0,
 			(unsigned int*)dwThreadId

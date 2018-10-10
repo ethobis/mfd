@@ -1,38 +1,18 @@
 #include "mfd.h"
-#include "mfd_thread_notify.h"
-#include "mfd_process_notify.h"
-#include "mfd_image_notify.h"
 
-#include "mfd_filesystem.h"
+#ifdef ALLOC_PRAGMA
+#pragma alloc_text(PAGE, MFDConnect)
+#pragma alloc_text(PAGE, MFDReceive)
+#pragma alloc_text(PAGE, MFDDisconnect)
+#pragma alloc_text(PAGE, MFDInstanceSetup)
+#pragma alloc_text(PAGE, MFDInstanceTeardown)
+#pragma alloc_text(PAGE, DriverUnload)
+#pragma alloc_text(INIT, DriverEntry)
+#endif
 
-FILTER_INFO g_FilterInfo = { 0, };
+FILTER_INFO g_CtxFilter = { 0, };
 
-NTSTATUS
-FLTAPI MFDPortMessage(
-	_In_ PVOID pvConnectionCookie,
-	_In_ PVOID pvInputBuffer,
-	_In_ ULONG ulInputBufferSize,
-	_Out_ PVOID pvOutputBuffer,
-	_Out_ ULONG ulOutputBufferSize,
-	_Out_ PULONG pulRetOutputBufferSize
-)
-{
-	NTSTATUS	status = STATUS_SUCCESS;
-
-	UNREFERENCED_PARAMETER(pvConnectionCookie);
-	UNREFERENCED_PARAMETER(pvInputBuffer);
-	UNREFERENCED_PARAMETER(ulInputBufferSize);
-	UNREFERENCED_PARAMETER(pvOutputBuffer);
-	UNREFERENCED_PARAMETER(ulOutputBufferSize);
-	UNREFERENCED_PARAMETER(pulRetOutputBufferSize);
-
-	PAGED_CODE();
-
-	return status;
-}
-
-NTSTATUS
-FLTAPI MFDPortConnect(
+NTSTATUS FLTAPI MFDConnect(
 	_In_ PFLT_PORT pClientPort,
 	_In_ PVOID pvServerPortCookie,
 	_In_ PVOID pvConnectionContext,
@@ -42,7 +22,6 @@ FLTAPI MFDPortConnect(
 {
 	NTSTATUS status = STATUS_SUCCESS;
 
-	UNREFERENCED_PARAMETER(pClientPort);
 	UNREFERENCED_PARAMETER(pvServerPortCookie);
 	UNREFERENCED_PARAMETER(pvConnectionContext);
 	UNREFERENCED_PARAMETER(ulSizeOfContext);
@@ -50,13 +29,41 @@ FLTAPI MFDPortConnect(
 
 	PAGED_CODE();
 
-	g_FilterInfo.pClientPort = pClientPort;
+	g_CtxFilter.pClientPort = pClientPort;
 
 	return status;
 }
 
-void
-FLTAPI MFDPortDisconnect(
+NTSTATUS FLTAPI MFDReceive(
+	_In_ PVOID pvConnectionCookie,
+	_In_ PVOID pvInputBuffer,
+	_In_ ULONG ulInputBufferSize,
+	_Out_ PVOID pvOutputBuffer,
+	_Out_ ULONG ulOutputBufferSize,
+	_Out_ PULONG pulRetOutputBufferSize
+)
+{
+	NTSTATUS status = STATUS_SUCCESS;
+
+	UNREFERENCED_PARAMETER(pvConnectionCookie);
+	UNREFERENCED_PARAMETER(pvOutputBuffer);
+	UNREFERENCED_PARAMETER(ulOutputBufferSize);
+	UNREFERENCED_PARAMETER(pulRetOutputBufferSize);
+
+	PAGED_CODE();
+
+	if (nullptr == pvInputBuffer ||
+		0 == ulInputBufferSize)
+	{
+		status = STATUS_INVALID_PARAMETER;
+		goto _RET;
+	}
+
+_RET:
+	return status;
+}
+
+void FLTAPI MFDDisconnect(
 	_In_ PVOID pvConnectionCookie
 )
 {
@@ -64,16 +71,98 @@ FLTAPI MFDPortDisconnect(
 
 	PAGED_CODE();
 
-	if (nullptr != g_FilterInfo.pClientPort)
+	if (nullptr != g_CtxFilter.pClientPort)
 	{
-		FltCloseClientPort(g_FilterInfo.pFilter, &g_FilterInfo.pClientPort);
+		FltCloseClientPort(g_CtxFilter.pFilter, &g_CtxFilter.pClientPort);
+		g_CtxFilter.pClientPort = nullptr;
 	}
 
 	return;
 }
 
-NTSTATUS
-FLTAPI MFDInstanceSetup(
+FLT_PREOP_CALLBACK_STATUS FLTAPI MFDPreRoutine(
+	_Inout_ PFLT_CALLBACK_DATA pData,
+	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+	_Out_ PVOID *pCompletionContext
+)
+{
+	FLT_PREOP_CALLBACK_STATUS FilterRet = FLT_PREOP_SUCCESS_WITH_CALLBACK;
+	BOOLEAN bDirectory = false;
+
+	UNREFERENCED_PARAMETER(pCompletionContext);
+
+	if (nullptr == pData ||
+		nullptr == pFltObjects)
+	{
+		goto _RET;
+	}
+
+	if (PASSIVE_LEVEL != KeGetCurrentIrql() &&
+		IRP_PAGING_IO & pData->Iopb->IrpFlags)
+	{
+		goto _RET;
+	}
+
+	if (FltIsDirectory(pFltObjects->FileObject, pFltObjects->Instance, &bDirectory))
+	{
+		goto _RET;
+	}
+
+	switch (pData->Iopb->MajorFunction)
+	{
+	case IRP_MJ_CREATE:
+		break;
+	}
+
+_RET:
+	return FilterRet;
+}
+
+FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDPostRoutine(
+	_Inout_ PFLT_CALLBACK_DATA pData,
+	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+	_In_opt_ PVOID pCompletionContext,
+	_In_ FLT_POST_OPERATION_FLAGS Flags
+)
+{
+	FLT_POSTOP_CALLBACK_STATUS FilterRet = FLT_POSTOP_FINISHED_PROCESSING;
+	BOOLEAN bDirectory = false;
+
+	UNREFERENCED_PARAMETER(pCompletionContext);
+
+	if (nullptr == pData ||
+		nullptr == pFltObjects)
+	{
+		goto _RET;
+	}
+
+	if (PASSIVE_LEVEL != KeGetCurrentIrql() &&
+		IRP_PAGING_IO & pData->Iopb->IrpFlags)
+	{
+		goto _RET;
+	}
+
+	if (FlagOn(Flags, FLTFL_POST_OPERATION_DRAINING))
+	{
+		goto _RET;
+	}
+
+	if (FltIsDirectory(pFltObjects->FileObject, pFltObjects->Instance, &bDirectory))
+	{
+		goto _RET;
+	}
+
+	switch (pData->Iopb->MajorFunction)
+	{
+	case IRP_MJ_CREATE:
+		break;
+	}
+
+_RET:
+	return FilterRet;
+}
+
+NTSTATUS FLTAPI MFDInstanceSetup(
 	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
 	_In_ FLT_INSTANCE_SETUP_FLAGS Flags,
 	_In_ DEVICE_TYPE VolumeDeviceType,
@@ -87,27 +176,20 @@ FLTAPI MFDInstanceSetup(
 	UNREFERENCED_PARAMETER(VolumeDeviceType);
 	UNREFERENCED_PARAMETER(VolumeFilesystemType);
 
-	PAGED_CODE();
-
 	return status;
 }
 
-void
-FLTAPI MFDInstanceTeardown(
+void FLTAPI MFDInstanceTeardown(
 	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
 	_In_ FLT_INSTANCE_TEARDOWN_FLAGS Reason
 )
 {
 	UNREFERENCED_PARAMETER(pFltObjects);
 	UNREFERENCED_PARAMETER(Reason);
-
-	PAGED_CODE();
-
 	return;
 }
 
-NTSTATUS
-FLTAPI DriverUnload(
+NTSTATUS FLTAPI DriverUnload(
 	_In_ FLT_FILTER_UNLOAD_FLAGS Flags
 )
 {
@@ -115,110 +197,95 @@ FLTAPI DriverUnload(
 
 	UNREFERENCED_PARAMETER(Flags);
 
-	MFDRemoveImageNotifyRoutine(MFDLoadImageNotifyRoutine);
+	PAGED_CODE();
 
-	MFDRemoveProcessNotifyRoutine(MFDProcessNotifyRoutine);
-	MFDDeleteAllProcess();
-
-	MFDRemoveThreadNotifyRoutine(MFDThreadNotifyRoutine);
-	MFDDeleteAllThread();
-
-	if (nullptr != g_FilterInfo.pServerPort)
+	if (nullptr != g_CtxFilter.pServerPort)
 	{
-		FltCloseCommunicationPort(g_FilterInfo.pServerPort);
+		FltCloseCommunicationPort(g_CtxFilter.pServerPort);
+		g_CtxFilter.pServerPort = nullptr;
 	}
 
-	if (nullptr != g_FilterInfo.pFilter)
+	if (nullptr != g_CtxFilter.pFilter)
 	{
-		FltUnregisterFilter(g_FilterInfo.pFilter);
+		FltUnregisterFilter(g_CtxFilter.pFilter);
+		g_CtxFilter.pFilter = nullptr;
 	}
-
-	DbgPrintEx(DPFLTR_DEFAULT_ID, DPFLTR_ERROR_LEVEL, "[DRIVER UNLOAD] :: SUCCESS!\n");
 
 	return status;
 }
 
-NTSTATUS
-DriverEntry(
+NTSTATUS DriverEntry(
 	_In_ PDRIVER_OBJECT pDriverObject,
 	_In_ PUNICODE_STRING puniRegistryPath
 )
 {
 	NTSTATUS status = STATUS_SUCCESS;
-	UNICODE_STRING uniPortName = { 0, };
 	OBJECT_ATTRIBUTES oa = { 0, };
-	PSECURITY_DESCRIPTOR pSD = nullptr;
+	PSECURITY_DESCRIPTOR seucirtyDescriptor = nullptr;
+	UNICODE_STRING uniPortName = { 0, };
 
-	UNREFERENCED_PARAMETER(pDriverObject);
 	UNREFERENCED_PARAMETER(puniRegistryPath);
 
-	PAGED_CODE();
-
-	status = FltRegisterFilter(pDriverObject, &FilterRegistration, &g_FilterInfo.pFilter);
+	status = FltRegisterFilter(pDriverObject, &FilterRegistration, &g_CtxFilter.pFilter);
 
 	if (!NT_SUCCESS(status))
 	{
 		goto _RET;
 	}
 
-	status = FltBuildDefaultSecurityDescriptor(&pSD, FLT_PORT_ALL_ACCESS);
+	status = FltBuildDefaultSecurityDescriptor(&seucirtyDescriptor, FLT_PORT_ALL_ACCESS);
 
 	if (!NT_SUCCESS(status))
 	{
 		goto _RET;
 	}
 
-	RtlInitUnicodeString(&uniPortName, FLT_FILTER_NAME);
+	RtlInitUnicodeString(&uniPortName, FILTER_NAME);
 	InitializeObjectAttributes(
 		&oa,
 		&uniPortName,
 		OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE,
-		nullptr,
-		pSD
+		NULL,
+		seucirtyDescriptor
 	);
-	
+
 	status = FltCreateCommunicationPort(
-		g_FilterInfo.pFilter,
-		&g_FilterInfo.pServerPort,
+		g_CtxFilter.pFilter,
+		&g_CtxFilter.pServerPort,
 		&oa,
-		nullptr,
-		(PFLT_CONNECT_NOTIFY)MFDPortConnect,
-		(PFLT_DISCONNECT_NOTIFY)MFDPortDisconnect,
-		(PFLT_MESSAGE_NOTIFY)MFDPortMessage,
+		NULL,
+		(PFLT_CONNECT_NOTIFY)MFDConnect,
+		(PFLT_DISCONNECT_NOTIFY)MFDDisconnect,
+		(PFLT_MESSAGE_NOTIFY)MFDReceive,
 		1
 	);
 
-	FltFreeSecurityDescriptor(pSD);
-
-	if (!NT_SUCCESS(status))
-	{
-		goto _RET;
-	}	
-
-	status = FltStartFiltering(g_FilterInfo.pFilter);
-
+	FltFreeSecurityDescriptor(seucirtyDescriptor);
 	if (!NT_SUCCESS(status))
 	{
 		goto _RET;
 	}
 
-	MFDSetThreadNotifyRoutine(MFDThreadNotifyRoutine);
-	MFDSetProcessNotifyRoutine(MFDProcessNotifyRoutine);
-	MFDSetImageNotifyRoutine(MFDLoadImageNotifyRoutine);
+	status = FltStartFiltering(g_CtxFilter.pFilter);
 
-	DbgPrintEx(DPFLTR_DEFAULT_ID, DPFLTR_ERROR_LEVEL, "[DRIVER LOAD] :: SUCCESS!\n");
+	if (!NT_SUCCESS(status))
+	{
+		goto _RET;
+	}
 
 	return status;
 
 _RET:
-	if (nullptr != g_FilterInfo.pServerPort)
+	if (nullptr != g_CtxFilter.pServerPort)
 	{
-		FltCloseCommunicationPort(g_FilterInfo.pServerPort);
+		FltCloseCommunicationPort(g_CtxFilter.pServerPort);
+		g_CtxFilter.pServerPort = nullptr;
 	}
 
-	if (nullptr != g_FilterInfo.pFilter)
+	if (nullptr != g_CtxFilter.pFilter)
 	{
-		FltUnregisterFilter(g_FilterInfo.pFilter);
+		FltUnregisterFilter(g_CtxFilter.pFilter);
+		g_CtxFilter.pFilter = nullptr;
 	}
 
 	return status;

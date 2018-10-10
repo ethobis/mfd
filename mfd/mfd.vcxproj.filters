@@ -25,6 +25,9 @@
     <ClCompile Include="mfd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mfd_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mfd.h">
@@ -35,6 +38,9 @@
     </ClInclude>
     <ClInclude Include="..\mfd-common\mfd_pe_format.h">
       <Filter>Common Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mfd_handler.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

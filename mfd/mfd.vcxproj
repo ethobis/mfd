@@ -124,11 +124,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mfd.cpp" />
+    <ClCompile Include="mfd_handler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\mfd-common\mfd_common.h" />
     <ClInclude Include="..\mfd-common\mfd_pe_format.h" />
     <ClInclude Include="mfd.h" />
+    <ClInclude Include="mfd_handler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

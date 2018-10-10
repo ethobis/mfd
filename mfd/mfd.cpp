@@ -1,13 +1,14 @@
 #include "mfd.h"
+#include "mfd_handler.h"
 
 #ifdef ALLOC_PRAGMA
+#pragma alloc_text(INIT, DriverEntry)
 #pragma alloc_text(PAGE, MFDConnect)
 #pragma alloc_text(PAGE, MFDReceive)
 #pragma alloc_text(PAGE, MFDDisconnect)
 #pragma alloc_text(PAGE, MFDInstanceSetup)
 #pragma alloc_text(PAGE, MFDInstanceTeardown)
 #pragma alloc_text(PAGE, DriverUnload)
-#pragma alloc_text(INIT, DriverEntry)
 #endif
 
 FILTER_INFO g_CtxFilter = { 0, };
@@ -111,6 +112,17 @@ FLT_PREOP_CALLBACK_STATUS FLTAPI MFDPreRoutine(
 	switch (pData->Iopb->MajorFunction)
 	{
 	case IRP_MJ_CREATE:
+		FilterRet = MFDCreatePreRoutine(
+			pData,
+			pFltObjects,
+			pCompletionContext
+		);
+	case IRP_MJ_CLEANUP:
+		FilterRet = MFDCleanupPreRoutine(
+			pData,
+			pFltObjects,
+			pCompletionContext
+		);		
 		break;
 	}
 
@@ -155,6 +167,12 @@ FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDPostRoutine(
 	switch (pData->Iopb->MajorFunction)
 	{
 	case IRP_MJ_CREATE:
+		FilterRet = MFDCreatePostRoutine(
+			pData,
+			pFltObjects,
+			pCompletionContext,
+			Flags
+		);
 		break;
 	}
 

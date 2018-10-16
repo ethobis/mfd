@@ -17,7 +17,7 @@ EXTERN_C NTSTATUS FLTAPI MFDConnect(
 	_In_ PVOID *pvConnectionCookie
 );
 
-EXTERN_C void FLTAPI MFDDisconnect(
+EXTERN_C VOID FLTAPI MFDDisconnect(
 	_In_ PVOID pvConnectionCookie
 );
 
@@ -41,7 +41,7 @@ EXTERN_C NTSTATUS FLTAPI MFDInstanceSetup(
 	_In_ FLT_FILESYSTEM_TYPE VolumeFilesystemType
 );
 
-EXTERN_C void FLTAPI MFDInstanceTeardown(
+EXTERN_C VOID FLTAPI MFDInstanceTeardown(
 	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
 	_In_ FLT_INSTANCE_TEARDOWN_FLAGS Reason
 );

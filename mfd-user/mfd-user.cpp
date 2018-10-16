@@ -14,8 +14,7 @@ typedef struct _FILTER_THREAD_CONTEXT
 	HANDLE hCompletion;
 }FILTER_THREAD_CONTEXT, *PFILTER_THREAD_CONTEXT;
 
-UINT WINAPI
-FilterWorkThread(
+UINT WINAPI FilterWorkThread(
 	_In_ PVOID FltWorkThreadContext
 )
 {

@@ -53,7 +53,7 @@ NTSTATUS FLTAPI MFDReceive(
 
 	PAGED_CODE();
 
-	if (nullptr == pvInputBuffer ||
+	if (NULL == pvInputBuffer ||
 		0 == ulInputBufferSize)
 	{
 		status = STATUS_INVALID_PARAMETER;
@@ -64,7 +64,7 @@ _RET:
 	return status;
 }
 
-void FLTAPI MFDDisconnect(
+VOID FLTAPI MFDDisconnect(
 	_In_ PVOID pvConnectionCookie
 )
 {
@@ -72,10 +72,10 @@ void FLTAPI MFDDisconnect(
 
 	PAGED_CODE();
 
-	if (nullptr != g_CtxFilter.pClientPort)
+	if (NULL != g_CtxFilter.pClientPort)
 	{
 		FltCloseClientPort(g_CtxFilter.pFilter, &g_CtxFilter.pClientPort);
-		g_CtxFilter.pClientPort = nullptr;
+		g_CtxFilter.pClientPort = NULL;
 	}
 
 	return;
@@ -88,23 +88,18 @@ FLT_PREOP_CALLBACK_STATUS FLTAPI MFDPreRoutine(
 )
 {
 	FLT_PREOP_CALLBACK_STATUS FilterRet = FLT_PREOP_SUCCESS_WITH_CALLBACK;
-	BOOLEAN bDirectory = false;
+	BOOLEAN bDirectory = FALSE;
 
 	UNREFERENCED_PARAMETER(pCompletionContext);
 
-	if (nullptr == pData ||
-		nullptr == pFltObjects)
+	if (NULL == pData ||
+		NULL == pFltObjects)
 	{
 		goto _RET;
 	}
 
 	if (PASSIVE_LEVEL != KeGetCurrentIrql() &&
 		IRP_PAGING_IO & pData->Iopb->IrpFlags)
-	{
-		goto _RET;
-	}
-
-	if (FltIsDirectory(pFltObjects->FileObject, pFltObjects->Instance, &bDirectory))
 	{
 		goto _RET;
 	}
@@ -138,12 +133,12 @@ FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDPostRoutine(
 )
 {
 	FLT_POSTOP_CALLBACK_STATUS FilterRet = FLT_POSTOP_FINISHED_PROCESSING;
-	BOOLEAN bDirectory = false;
+	BOOLEAN bDirectory = FALSE;
 
 	UNREFERENCED_PARAMETER(pCompletionContext);
 
-	if (nullptr == pData ||
-		nullptr == pFltObjects)
+	if (NULL == pData ||
+		NULL == pFltObjects)
 	{
 		goto _RET;
 	}
@@ -155,11 +150,6 @@ FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDPostRoutine(
 	}
 
 	if (FlagOn(Flags, FLTFL_POST_OPERATION_DRAINING))
-	{
-		goto _RET;
-	}
-
-	if (FltIsDirectory(pFltObjects->FileObject, pFltObjects->Instance, &bDirectory))
 	{
 		goto _RET;
 	}
@@ -197,7 +187,7 @@ NTSTATUS FLTAPI MFDInstanceSetup(
 	return status;
 }
 
-void FLTAPI MFDInstanceTeardown(
+VOID FLTAPI MFDInstanceTeardown(
 	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
 	_In_ FLT_INSTANCE_TEARDOWN_FLAGS Reason
 )
@@ -217,16 +207,16 @@ NTSTATUS FLTAPI DriverUnload(
 
 	PAGED_CODE();
 
-	if (nullptr != g_CtxFilter.pServerPort)
+	if (NULL != g_CtxFilter.pServerPort)
 	{
 		FltCloseCommunicationPort(g_CtxFilter.pServerPort);
-		g_CtxFilter.pServerPort = nullptr;
+		g_CtxFilter.pServerPort = NULL;
 	}
 
-	if (nullptr != g_CtxFilter.pFilter)
+	if (NULL != g_CtxFilter.pFilter)
 	{
 		FltUnregisterFilter(g_CtxFilter.pFilter);
-		g_CtxFilter.pFilter = nullptr;
+		g_CtxFilter.pFilter = NULL;
 	}
 
 	return status;
@@ -239,7 +229,7 @@ NTSTATUS DriverEntry(
 {
 	NTSTATUS status = STATUS_SUCCESS;
 	OBJECT_ATTRIBUTES oa = { 0, };
-	PSECURITY_DESCRIPTOR seucirtyDescriptor = nullptr;
+	PSECURITY_DESCRIPTOR seucirtyDescriptor = NULL;
 	UNICODE_STRING uniPortName = { 0, };
 
 	UNREFERENCED_PARAMETER(puniRegistryPath);
@@ -294,16 +284,16 @@ NTSTATUS DriverEntry(
 	return status;
 
 _RET:
-	if (nullptr != g_CtxFilter.pServerPort)
+	if (NULL != g_CtxFilter.pServerPort)
 	{
 		FltCloseCommunicationPort(g_CtxFilter.pServerPort);
-		g_CtxFilter.pServerPort = nullptr;
+		g_CtxFilter.pServerPort = NULL;
 	}
 
-	if (nullptr != g_CtxFilter.pFilter)
+	if (NULL != g_CtxFilter.pFilter)
 	{
 		FltUnregisterFilter(g_CtxFilter.pFilter);
-		g_CtxFilter.pFilter = nullptr;
+		g_CtxFilter.pFilter = NULL;
 	}
 
 	return status;

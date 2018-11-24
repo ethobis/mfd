@@ -13,7 +13,7 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="공통 파일">
+    <Filter Include="Common">
       <UniqueIdentifier>{6b2106b5-6ba2-4443-8cc1-103e867f3cb3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -24,7 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\mfd-common\mfd_common.h">
-      <Filter>공통 파일</Filter>
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

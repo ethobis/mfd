@@ -8,10 +8,12 @@
 #pragma alloc_text(PAGE, MFDDisconnect)
 #pragma alloc_text(PAGE, MFDInstanceSetup)
 #pragma alloc_text(PAGE, MFDInstanceTeardown)
+#pragma alloc_text(PAGE, MFDPreRoutine)
+#pragma alloc_text(PAGE, MFDPostRoutine)
 #pragma alloc_text(PAGE, DriverUnload)
 #endif
 
-FILTER_INFO g_CtxFilter = { 0, };
+FILTER_CONTEXT g_CtxFilter = { NULL, };
 
 NTSTATUS FLTAPI MFDConnect(
 	_In_ PFLT_PORT pClientPort,
@@ -23,12 +25,12 @@ NTSTATUS FLTAPI MFDConnect(
 {
 	NTSTATUS status = STATUS_SUCCESS;
 
+	PAGED_CODE();
+
 	UNREFERENCED_PARAMETER(pvServerPortCookie);
 	UNREFERENCED_PARAMETER(pvConnectionContext);
 	UNREFERENCED_PARAMETER(ulSizeOfContext);
 	UNREFERENCED_PARAMETER(pvConnectionCookie);
-
-	PAGED_CODE();
 
 	g_CtxFilter.pClientPort = pClientPort;
 
@@ -46,21 +48,15 @@ NTSTATUS FLTAPI MFDReceive(
 {
 	NTSTATUS status = STATUS_SUCCESS;
 
+	PAGED_CODE();
+
 	UNREFERENCED_PARAMETER(pvConnectionCookie);
+	UNREFERENCED_PARAMETER(pvInputBuffer);
+	UNREFERENCED_PARAMETER(ulInputBufferSize);
 	UNREFERENCED_PARAMETER(pvOutputBuffer);
 	UNREFERENCED_PARAMETER(ulOutputBufferSize);
 	UNREFERENCED_PARAMETER(pulRetOutputBufferSize);
 
-	PAGED_CODE();
-
-	if (NULL == pvInputBuffer ||
-		0 == ulInputBufferSize)
-	{
-		status = STATUS_INVALID_PARAMETER;
-		goto _RET;
-	}
-
-_RET:
 	return status;
 }
 
@@ -68,9 +64,9 @@ VOID FLTAPI MFDDisconnect(
 	_In_ PVOID pvConnectionCookie
 )
 {
-	UNREFERENCED_PARAMETER(pvConnectionCookie);
-
 	PAGED_CODE();
+
+	UNREFERENCED_PARAMETER(pvConnectionCookie);
 
 	if (NULL != g_CtxFilter.pClientPort)
 	{
@@ -88,21 +84,10 @@ FLT_PREOP_CALLBACK_STATUS FLTAPI MFDPreRoutine(
 )
 {
 	FLT_PREOP_CALLBACK_STATUS FilterRet = FLT_PREOP_SUCCESS_WITH_CALLBACK;
-	BOOLEAN bDirectory = FALSE;
+
+	PAGED_CODE();
 
 	UNREFERENCED_PARAMETER(pCompletionContext);
-
-	if (NULL == pData ||
-		NULL == pFltObjects)
-	{
-		goto _RET;
-	}
-
-	if (PASSIVE_LEVEL != KeGetCurrentIrql() &&
-		IRP_PAGING_IO & pData->Iopb->IrpFlags)
-	{
-		goto _RET;
-	}
 
 	switch (pData->Iopb->MajorFunction)
 	{
@@ -112,6 +97,7 @@ FLT_PREOP_CALLBACK_STATUS FLTAPI MFDPreRoutine(
 			pFltObjects,
 			pCompletionContext
 		);
+		break;
 	case IRP_MJ_CLEANUP:
 		FilterRet = MFDCleanupPreRoutine(
 			pData,
@@ -121,7 +107,6 @@ FLT_PREOP_CALLBACK_STATUS FLTAPI MFDPreRoutine(
 		break;
 	}
 
-_RET:
 	return FilterRet;
 }
 
@@ -133,26 +118,10 @@ FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDPostRoutine(
 )
 {
 	FLT_POSTOP_CALLBACK_STATUS FilterRet = FLT_POSTOP_FINISHED_PROCESSING;
-	BOOLEAN bDirectory = FALSE;
+
+	PAGED_CODE();
 
 	UNREFERENCED_PARAMETER(pCompletionContext);
-
-	if (NULL == pData ||
-		NULL == pFltObjects)
-	{
-		goto _RET;
-	}
-
-	if (PASSIVE_LEVEL != KeGetCurrentIrql() &&
-		IRP_PAGING_IO & pData->Iopb->IrpFlags)
-	{
-		goto _RET;
-	}
-
-	if (FlagOn(Flags, FLTFL_POST_OPERATION_DRAINING))
-	{
-		goto _RET;
-	}
 
 	switch (pData->Iopb->MajorFunction)
 	{
@@ -166,7 +135,6 @@ FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDPostRoutine(
 		break;
 	}
 
-_RET:
 	return FilterRet;
 }
 
@@ -178,6 +146,8 @@ NTSTATUS FLTAPI MFDInstanceSetup(
 )
 {
 	NTSTATUS status = STATUS_SUCCESS;
+
+	PAGED_CODE();
 
 	UNREFERENCED_PARAMETER(pFltObjects);
 	UNREFERENCED_PARAMETER(Flags);
@@ -192,6 +162,8 @@ VOID FLTAPI MFDInstanceTeardown(
 	_In_ FLT_INSTANCE_TEARDOWN_FLAGS Reason
 )
 {
+	PAGED_CODE();
+
 	UNREFERENCED_PARAMETER(pFltObjects);
 	UNREFERENCED_PARAMETER(Reason);
 	return;
@@ -203,9 +175,9 @@ NTSTATUS FLTAPI DriverUnload(
 {
 	NTSTATUS status = STATUS_SUCCESS;
 
-	UNREFERENCED_PARAMETER(Flags);
-
 	PAGED_CODE();
+
+	UNREFERENCED_PARAMETER(Flags);
 
 	if (NULL != g_CtxFilter.pServerPort)
 	{
@@ -234,21 +206,28 @@ NTSTATUS DriverEntry(
 
 	UNREFERENCED_PARAMETER(puniRegistryPath);
 
-	status = FltRegisterFilter(pDriverObject, &FilterRegistration, &g_CtxFilter.pFilter);
+	status = FltRegisterFilter(
+		pDriverObject,
+		&FilterRegistration,
+		&g_CtxFilter.pFilter
+	);
 
 	if (!NT_SUCCESS(status))
 	{
 		goto _RET;
 	}
 
-	status = FltBuildDefaultSecurityDescriptor(&seucirtyDescriptor, FLT_PORT_ALL_ACCESS);
+	status = FltBuildDefaultSecurityDescriptor(
+		&seucirtyDescriptor,
+		FLT_PORT_ALL_ACCESS
+	);
 
 	if (!NT_SUCCESS(status))
 	{
 		goto _RET;
 	}
 
-	RtlInitUnicodeString(&uniPortName, FILTER_NAME);
+	RtlInitUnicodeString(&uniPortName, MFD_FILTER_NAME);
 	InitializeObjectAttributes(
 		&oa,
 		&uniPortName,

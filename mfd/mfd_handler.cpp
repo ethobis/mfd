@@ -1,5 +1,11 @@
 #include "mfd_handler.h"
 
+#ifdef ALLOC_PRAGMA
+#pragma alloc_text(PAGE, MFDCreatePreRoutine)
+#pragma alloc_text(PAGE, MFDCleanupPreRoutine)
+#pragma alloc_text(PAGE, MFDCreatePostRoutine)
+#endif
+
 //
 // PRE 콜백 루틴
 //
@@ -11,6 +17,8 @@ FLT_PREOP_CALLBACK_STATUS FLTAPI MFDCreatePreRoutine(
 )
 {
 	FLT_PREOP_CALLBACK_STATUS FilterRet = FLT_PREOP_SUCCESS_WITH_CALLBACK;
+
+	PAGED_CODE();
 
 	UNREFERENCED_PARAMETER(pData);
 	UNREFERENCED_PARAMETER(pFltObjects);
@@ -26,6 +34,8 @@ FLT_PREOP_CALLBACK_STATUS FLTAPI MFDCleanupPreRoutine(
 )
 {
 	FLT_PREOP_CALLBACK_STATUS FilterRet = FLT_PREOP_SUCCESS_WITH_CALLBACK;
+
+	PAGED_CODE();
 
 	UNREFERENCED_PARAMETER(pData);
 	UNREFERENCED_PARAMETER(pFltObjects);
@@ -46,6 +56,8 @@ FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDCreatePostRoutine(
 )
 {
 	FLT_POSTOP_CALLBACK_STATUS FilterRet = FLT_POSTOP_FINISHED_PROCESSING;
+
+	PAGED_CODE();
 
 	UNREFERENCED_PARAMETER(pData);
 	UNREFERENCED_PARAMETER(pFltObjects);

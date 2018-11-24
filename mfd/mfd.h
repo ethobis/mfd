@@ -1,4 +1,4 @@
-#include "..\mfd-common\mfd_common.h"
+#include "../mfd-common/mfd_common.h"
 
 EXTERN_C NTSTATUS FLTAPI MFDReceive(
 	_In_ PVOID pvConnectionCookie,
@@ -21,13 +21,13 @@ EXTERN_C VOID FLTAPI MFDDisconnect(
 	_In_ PVOID pvConnectionCookie
 );
 
-FLT_PREOP_CALLBACK_STATUS FLTAPI MFDPreRoutine(
+EXTERN_C FLT_PREOP_CALLBACK_STATUS FLTAPI MFDPreRoutine(
 	_Inout_ PFLT_CALLBACK_DATA pData,
 	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
 	_Out_ PVOID *pCompletionContext
 );
 
-FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDPostRoutine(
+EXTERN_C FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDPostRoutine(
 	_Inout_ PFLT_CALLBACK_DATA pData,
 	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
 	_In_opt_ PVOID pCompletionContext,
@@ -140,16 +140,6 @@ CONST FLT_OPERATION_REGISTRATION Callbacks[] =
 
 FLT_CONTEXT_REGISTRATION FilterContextRegistration[] =
 {
-	{
-		FLT_STREAMHANDLE_CONTEXT,
-		0,
-		NULL,
-		sizeof(FILTER_STREAMHANDLE_CONTEXT),
-		'CDFM',
-		NULL,
-		NULL,
-		NULL
-	},
 	{ FLT_CONTEXT_END }
 };
 

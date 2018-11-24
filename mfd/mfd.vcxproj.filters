@@ -17,9 +17,45 @@
       <UniqueIdentifier>{8E41214B-6785-4CFE-B992-037D68949A14}</UniqueIdentifier>
       <Extensions>inf;inv;inx;mof;mc;</Extensions>
     </Filter>
-    <Filter Include="Common Files">
-      <UniqueIdentifier>{9bad7986-42ee-490d-a5b0-4941409b55fd}</UniqueIdentifier>
+    <Filter Include="Common">
+      <UniqueIdentifier>{45bdc8d9-7c5d-4b9e-b5c5-7db4c3266b23}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Inf Include="mfd.inf">
+      <Filter>Driver Files</Filter>
+    </Inf>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="mfd.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\mfd-common\mfd_common.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-common\mfd_undocument.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-common\mfd_undocumented_7.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-common\mfd_undocumented_8.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-common\mfd_undocumented_8_1.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-common\mfd_undocumented_10.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="mfd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mfd_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mfd.cpp">
@@ -28,19 +64,5 @@
     <ClCompile Include="mfd_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="mfd.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\mfd-common\mfd_common.h">
-      <Filter>Common Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\mfd-common\mfd_pe_format.h">
-      <Filter>Common Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mfd_handler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

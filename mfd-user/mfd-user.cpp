@@ -4,82 +4,81 @@
 #include <fltuser.h>
 #include "..\mfd-common\mfd_common.h"
 
-#define FILTER_REQUEST_COUNT 5
-#define FILTER_THREAD_COUNT 2
-#define FILTER_MAX_THREAD_COUNT 64
+#pragma warning(disable:4312)
 
-typedef struct _FILTER_THREAD_CONTEXT
+typedef struct _MFD_USER_THREAD_CONTEXT
 {
 	HANDLE hPort;
 	HANDLE hCompletion;
-}FILTER_THREAD_CONTEXT, *PFILTER_THREAD_CONTEXT;
+}MFD_USER_THREAD_CONTEXT, *PMFD_USER_THREAD_CONTEXT;
 
-UINT WINAPI FilterWorkThread(
+UINT WINAPI MFDUserWorkerThread(
 	_In_ PVOID FltWorkThreadContext
 )
 {
 	DWORD dwRetValue = 0;
-	PFILTER_NOTIFICATION pNotification = nullptr;
-	FILTER_REPLY_MESSAGE ReplyMessage = { 0, };
-	PFILTER_MESSAGE pMessage = nullptr;
-	LPOVERLAPPED pOvlp = nullptr;
-	BOOL bRetValue = FALSE;
+	PFILTER_MESSAGE_NOTIFICATION pNotification = NULL;
+	FILTER_MESSAGE_REPLY ReplyMessage = { 0, };
+	PFILTER_MESSAGE pMessage = NULL;
+	LPOVERLAPPED pOvlp = NULL;
+	BOOL bRet = FALSE;
 	DWORD dwOutputSize = 0;
 	HRESULT hr;
 	ULONG_PTR ulptrKey = 0;
 
-	PFILTER_THREAD_CONTEXT Context = (PFILTER_THREAD_CONTEXT)FltWorkThreadContext;
+	PMFD_USER_THREAD_CONTEXT pContext = (PMFD_USER_THREAD_CONTEXT)FltWorkThreadContext;
 
 	while (1)
 	{		
-		bRetValue = GetQueuedCompletionStatus(
-			Context->hCompletion,
+		bRet = GetQueuedCompletionStatus(
+			pContext->hCompletion,
 			&dwOutputSize,
 			&ulptrKey,
 			&pOvlp,
 			INFINITE
 		);
 
-		pMessage = CONTAINING_RECORD(pOvlp, FILTER_MESSAGE, Ovlp);
+		pNotification = CONTAINING_RECORD(pOvlp, FILTER_MESSAGE_NOTIFICATION, Ovlp);
 
-		if (bRetValue == FALSE)
+		if (bRet == FALSE)
 		{
-			hr = HRESULT_FROM_WIN32(GetLastError());
 			break;
 		}
+		
+		pMessage = &(pNotification->Message);
 
-		pNotification = &(pMessage->Notification);
-
-		ReplyMessage.Reply.bReply = TRUE;
+		ReplyMessage.Reply.unused = 0;
 		ReplyMessage.ReplyHeader.Status = 0;
-		ReplyMessage.ReplyHeader.MessageId = pMessage->Header.MessageId;
+		ReplyMessage.ReplyHeader.MessageId = pNotification->Header.MessageId;
 
 		hr = FilterReplyMessage(
-			Context->hPort,
+			pContext->hPort,
 			(PFILTER_REPLY_HEADER)&ReplyMessage,
 			sizeof(ReplyMessage)
 		);
 
-		if (!SUCCEEDED(hr))
-		{
+		if (IS_ERROR(hr))
+		{			
 			break;
 		}
 
-		memset(pMessage, 0, sizeof(FILTER_MESSAGE));
+		memset(pNotification, 0, sizeof(FILTER_MESSAGE_NOTIFICATION));
 
 		hr = FilterGetMessage(
-			Context->hPort,
-			&pMessage->Header,
-			FIELD_OFFSET(FILTER_MESSAGE, Ovlp),
-			&pMessage->Ovlp
+			pContext->hPort,
+			&pNotification->Header,
+			FIELD_OFFSET(FILTER_MESSAGE_NOTIFICATION, Ovlp),
+			&pNotification->Ovlp
 		);
 
 		if (hr != HRESULT_FROM_WIN32(ERROR_IO_PENDING))
 		{
-			free(pMessage);
+			free(pNotification);
+			pNotification = NULL;
 			break;
 		}
 	}
+
 	return 0;
 }
 
@@ -88,50 +87,39 @@ int main(int argc, char** argv)
 	ULONG ulIndex = 0;
 	ULONG ulRequestIndex = 0;
 	HRESULT hr;
-	HANDLE hPort = nullptr;
-	HANDLE hCompletion = nullptr;
-	DWORD dwThreadCount = FILTER_THREAD_COUNT;
-	DWORD dwRequestCount = FILTER_REQUEST_COUNT;
-	HANDLE hThread[FILTER_MAX_THREAD_COUNT];
+	HANDLE hPort = NULL;
+	HANDLE hCompletion = NULL;
+	DWORD dwThreadCount = MFD_USER_THREAD_COUNT;
+	DWORD dwRequestCount = MFD_USER_REQUEST_COUNT;
+	HANDLE hThread[MFD_USER_MAX_THREAD_COUNT];
 	DWORD dwThreadId = 0;
-	FILTER_THREAD_CONTEXT Context = { nullptr, };
-	PFILTER_MESSAGE pMessage = nullptr;
+	MFD_USER_THREAD_CONTEXT Context = { NULL, };
+	PFILTER_MESSAGE_NOTIFICATION pNotification = NULL;
 	DWORD dwRetValue = 0;
 
 	hr = FilterConnectCommunicationPort(
-		FILTER_NAME,
+		MFD_FILTER_NAME,
 		0,
-		nullptr,
+		NULL,
 		0,
-		nullptr,
+		NULL,
 		&hPort
 	);
 
-	if (IS_ERROR(hr))
+	if (IS_ERROR(hr) ||
+		NULL == hPort)
 	{
-		hr = FilterConnectCommunicationPort(
-			FILTER_NAME,
-			0,	
-			nullptr,
-			0,
-			nullptr,
-			&hPort
-		);
-
-		if (IS_ERROR(hr))
-		{
-			goto _RET;
-		}
+		goto _RET;
 	}
 
 	hCompletion = CreateIoCompletionPort(
 		hPort,
-		nullptr,
+		NULL,
 		0,
 		dwThreadCount
 	);
 
-	if (hCompletion == nullptr)
+	if (NULL == hCompletion)
 	{
 		goto _RET;
 	}
@@ -142,67 +130,64 @@ int main(int argc, char** argv)
 	for (ulIndex = 0; ulIndex < dwThreadCount; ++ulIndex)
 	{
 		hThread[ulIndex] = (HANDLE)_beginthreadex(
-			nullptr,
+			NULL,
 			0,
-			FilterWorkThread,
+			MFDUserWorkerThread,
 			&Context,
 			0,
-			(unsigned int*)dwThreadId
+			(UINT*)dwThreadId
 		);
 
-		if (hThread[ulIndex] == nullptr)
+		if (NULL == hThread[ulIndex])
 		{
-			goto _RET;
+			break;
 		}
 
 		for (ulRequestIndex = 0; ulRequestIndex < dwRequestCount; ++ulRequestIndex)
 		{
-			pMessage = (PFILTER_MESSAGE)malloc(sizeof(FILTER_MESSAGE));
+			pNotification = (PFILTER_MESSAGE_NOTIFICATION)
+				malloc(sizeof(FILTER_MESSAGE_NOTIFICATION));
 
-			if (pMessage == nullptr)
+			if (NULL == pNotification)
 			{
-				goto _RET;
+				break;
 			}
 
-			memset(pMessage, 0, sizeof(FILTER_MESSAGE));
-			memset(&(pMessage->Ovlp), 0, sizeof(OVERLAPPED));
+			memset(pNotification, 0, sizeof(FILTER_MESSAGE_NOTIFICATION));
+			memset(&(pNotification->Ovlp), 0, sizeof(OVERLAPPED));
 
 			hr = FilterGetMessage(
 				hPort,
-				&pMessage->Header,
-				FIELD_OFFSET(FILTER_MESSAGE, Ovlp),
-				&pMessage->Ovlp
+				&pNotification->Header,
+				FIELD_OFFSET(FILTER_MESSAGE_NOTIFICATION, Ovlp),
+				&pNotification->Ovlp
 			);
 
 			if (hr != HRESULT_FROM_WIN32(ERROR_IO_PENDING))
 			{
-				free(pMessage);
-				goto _RET;
+				free(pNotification);
+				pNotification = NULL;
+				break;
 			}
 		}
 	}
 
 	hr = S_OK;
 	WaitForMultipleObjectsEx(ulIndex, hThread, TRUE, INFINITE, FALSE);
+	
 	return 0;
 
 _RET:
-	if (nullptr != hPort)
+	if (NULL != hPort)
 	{
 		CloseHandle(hPort);
-		hPort = nullptr;
+		hPort = NULL;
 	}
 
-	if (nullptr != hCompletion)
+	if (NULL != hCompletion)
 	{
 		CloseHandle(hCompletion);
-		hCompletion = nullptr;
-	}
-
-	if (pMessage != nullptr)
-	{
-		free(pMessage);
-		pMessage = nullptr;
+		hCompletion = NULL;
 	}
 
 	return 0;

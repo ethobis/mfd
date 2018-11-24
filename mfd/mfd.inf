@@ -28,9 +28,9 @@ CatalogFile = mfd.cat
 ;;;
 
 [DestinationDirs]
-DefaultDestDir = 12
-mfd.DeleteDriverFiles = 12
-mfd.CopyDriverFiles = 12
+DefaultDestDir = 01
+;mfd.DeleteDriverFiles = 12
+;mfd.CopyDriverFiles = 12
 
 [DefaultInstall]
 OptionDesc = %ServiceDescription%
@@ -67,7 +67,7 @@ mfd.sys = 1,,
 [mfd.Service]
 DisplayName = %ServiceName%
 Description = %ServiceDescription%
-ServiceBinary = %12%\%DriverName%.sys
+ServiceBinary = %01%\%DriverName%.sys
 ServiceType = 2
 
 ;;; SERVICE_KERNEL_DRIVER		: 0x00000001

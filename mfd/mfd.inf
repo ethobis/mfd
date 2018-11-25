@@ -1,64 +1,42 @@
 ;;;
-;;; 파일 시스템 미니필터 드라이버
+;;; mfd 파일시스템 미니필터 드라이버
 ;;;
 
 [Version]
 Signature = "$Windows NT$"
 Class = "AntiVirus"
 ClassGuid = {b1d1a169-c54f-4379-81db-bee7d88d7454}
-
-;;; Class = AntiVirus
-;;; ClassGuid = {b1d1a169-c54f-4379-81db-bee7d88d7454}
-;;; MSDN : https://docs.microsoft.com/en-us/windows-hardware/drivers/ifs/file-system-filter-driver-classes-and-class-guids
-
 Provider = %Provider%
-DriverVer = 11/23/2018,14.34.46.130
+DriverVer = 11/25/2018,1.10.40.169
 CatalogFile = mfd.cat
-
-;;; 01 : ..\
-;;; 10 : %SystemRoot% (c:\windows)
-;;; 11 : %SystemRoot%\System32 (c:\windows\system32)
-;;; 12 : %SystemRoot%\System32\drivers (c:\windows\system32\drivers)
-;;; 17 : c:\windows\inf
-;;; 11, drivers : c:\windows\system32\drivers
-;;; %11%drivers : c:\windows\system32\drivers
 
 ;;;
 ;;; 설치 & 제거
 ;;;
 
 [DestinationDirs]
-DefaultDestDir = 01
-;mfd.DeleteDriverFiles = 12
-;mfd.CopyDriverFiles = 12
+DefaultDestDir = 12
+mfd.DeleteDriverFiles = 12
+mfd.CopyDriverFiles = 12
 
 [DefaultInstall]
 OptionDesc = %ServiceDescription%
 CopyFiles = mfd.CopyDriverFiles
 
+[mfd.CopyDriverFiles]
+%DriverName%.sys ,,, 0x00002000
+
 [DefaultInstall.Services]
 AddService = %ServiceName%,,mfd.Service
-;;; AddService = ServiceName,[flags],Service-Install-Section
 
 [DefaultUninstall.Services]
 DelService = %ServiceName%,0x200
-;;; SPSVCINST_DELETEEVENTLOGENTRY : 0x00000004 (지정한 서비스 이름과 관련된 모든 이벤트 로그를 제거)
-;;; SPSVCINST_STOPSERVICE : 0x00000200 (서비스를 정지하고 난 뒤에 제거)
 
 [DefaultUninstall]
 DelFiles = mfd.DeleteDriverFiles
 
-[mfd.CopyDriverFiles]
-%DriverName%.sys ,,, 0x00002000; COPYFLG_NOPRUNE
-
 [mfd.DeleteDriverFiles]
-%DriverName%.sys ,,, 0x00010001; (DELFLG_IN_USE | DELFLG_IN_USE1)
-
-[SourceDisksFiles]
-mfd.sys = 1,,
-
-[SourceDisksNames]
-1 = %DiskId1%
+%DriverName%.sys ,,, 0x00010001
 
 ;;;
 ;;; 서비스
@@ -67,44 +45,32 @@ mfd.sys = 1,,
 [mfd.Service]
 DisplayName = %ServiceName%
 Description = %ServiceDescription%
-ServiceBinary = %01%\%DriverName%.sys
+Dependencies = "FltMgr"
+ServiceBinary = %12%\%DriverName%.sys
 ServiceType = 2
-
-;;; SERVICE_KERNEL_DRIVER		: 0x00000001
-;;; SERVICE_WIN32_OWN_PROCESS	: 0x00000010
-;;; SERVICE_WIN32_SHARE_PROCESS : 0x00000020
-;;; SERVICE_INTERACTIVE_PROCESS : 0x00000100
-;;; SERVICE_FILE_SYSTEM_DRIVER	: 0x00000002
-
 StartType = 3
-
-;;; SERVICE_BOOT_START			: 0x00000000
-;;; SERVICE_SYSTEM_START		: 0x00000001
-;;; SERVICE_AUTO_START			: 0x00000002
-;;; SERVICE_DEMAND_START		: 0x00000003
-;;; SERVICE_DISABLED			: 0x00000004
-
 ErrorControl = 1
-
-;;; SERVICE_ERROR_IGNORE		: 0x00000000 (드라이버 로드, 초기화 실패)
-;;; SERVICE_ERROR_NORMAL		: 0x00000001 (실패한 경우 사용자에게 경고)
-;;; SERVICE_DISABLED			: 0x00000004 (드라이버 시작 불가능)
-
 LoadOrderGroup = "FSFilter Anti-Virus"
-
-;;; FSFilter Anti-Virus
-;;; MSDN : https://docs.microsoft.com/en-us/windows-hardware/drivers/ifs/load-order-groups-and-altitudes-for-minifilter-drivers
-
 AddReg = mfd.AddRegistry
 
 ;;;
-;;; 레지스트리 수정
+;;; 레지스트리 추가
 ;;;
 
 [mfd.AddRegistry]
 HKR,"Instances","DefaultInstance", 0, %DefaultInstance%
 HKR,"Instances\"%Instance.Name%,"Altitude", 0, %Instance.Altitude%
 HKR,"Instances\"%Instance.Name%,"Flags",0, %Instance.Flags%
+
+;;;
+;;; 파일 복사
+;;;
+
+[SourceDisksFiles]
+mfd.sys = 1,,
+
+[SourceDisksNames]
+1 = %DiskId1%
 
 ;;;
 ;;; 문자열

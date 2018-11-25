@@ -122,91 +122,12 @@ BOOLEAN MFDUserStop(
 	return TRUE;
 }
 
-UINT WINAPI MFDUserWorkerThread(
-	_In_ PVOID FltWorkThreadContext
-)
-{
-	DWORD dwRetValue = 0;
-	PFILTER_MESSAGE_NOTIFICATION pNotification = NULL;
-	FILTER_MESSAGE_REPLY ReplyMessage = { 0, };
-	PFILTER_MESSAGE pMessage = NULL;
-	LPOVERLAPPED pOvlp = NULL;
-	BOOL bRet = FALSE;
-	DWORD dwOutputSize = 0;
-	HRESULT hr;
-	ULONG_PTR ulptrKey = 0;
-
-	PMFD_USER_THREAD_CONTEXT pContext = (PMFD_USER_THREAD_CONTEXT)FltWorkThreadContext;
-
-	while (1)
-	{		
-		bRet = GetQueuedCompletionStatus(
-			pContext->hCompletion,
-			&dwOutputSize,
-			&ulptrKey,
-			&pOvlp,
-			INFINITE
-		);
-
-		pNotification = CONTAINING_RECORD(pOvlp, FILTER_MESSAGE_NOTIFICATION, Ovlp);
-
-		if (bRet == FALSE)
-		{
-			break;
-		}
-		
-		pMessage = &(pNotification->Message);
-
-		printf("Get Message!\n");
-
-		ReplyMessage.Reply.unused = 0;
-		ReplyMessage.ReplyHeader.Status = 0;
-		ReplyMessage.ReplyHeader.MessageId = pNotification->Header.MessageId;
-
-		hr = FilterReplyMessage(
-			pContext->hPort,
-			(PFILTER_REPLY_HEADER)&ReplyMessage,
-			sizeof(ReplyMessage)
-		);
-
-		if (IS_ERROR(hr))
-		{			
-			break;
-		}
-
-		memset(pNotification, 0, sizeof(FILTER_MESSAGE_NOTIFICATION));
-
-		hr = FilterGetMessage(
-			pContext->hPort,
-			&pNotification->Header,
-			FIELD_OFFSET(FILTER_MESSAGE_NOTIFICATION, Ovlp),
-			&pNotification->Ovlp
-		);
-
-		if (hr != HRESULT_FROM_WIN32(ERROR_IO_PENDING))
-		{
-			free(pNotification);
-			pNotification = NULL;
-			break;
-		}
-	}
-
-	return 0;
-}
-
 VOID MFDUserConnect()
 {
-	ULONG ulIndex = 0;
-	ULONG ulRequestIndex = 0;
 	HRESULT hr;
 	HANDLE hPort = NULL;
-	HANDLE hCompletion = NULL;
-	DWORD dwThreadCount = MFD_USER_THREAD_COUNT;
-	DWORD dwRequestCount = MFD_USER_REQUEST_COUNT;
-	HANDLE hThread[MFD_USER_MAX_THREAD_COUNT];
-	DWORD dwThreadId = 0;
-	MFD_USER_THREAD_CONTEXT Context = { NULL, };
 	PFILTER_MESSAGE_NOTIFICATION pNotification = NULL;
+	FILTER_MESSAGE_REPLY ReplyMessage = { 0, };
 	DWORD dwRetValue = 0;
 
 	hr = FilterConnectCommunicationPort(
@@ -224,83 +145,62 @@ VOID MFDUserConnect()
 		goto _RET;
 	}
 
-	hCompletion = CreateIoCompletionPort(
-		hPort,
-		NULL,
-		0,
-		dwThreadCount
-	);
+	pNotification = (PFILTER_MESSAGE_NOTIFICATION)malloc(sizeof(FILTER_MESSAGE_NOTIFICATION));
 
-	if (NULL == hCompletion)
+	if (NULL == pNotification)
 	{
 		goto _RET;
 	}
 
-	Context.hPort = hPort;
-	Context.hCompletion = hCompletion;
-
-	for (ulIndex = 0; ulIndex < dwThreadCount; ++ulIndex)
+	while (1)
 	{
-		hThread[ulIndex] = (HANDLE)_beginthreadex(
-			NULL,
-			0,
-			MFDUserWorkerThread,
-			&Context,
-			0,
-			(UINT*)dwThreadId
+		memset(pNotification, 0, sizeof(FILTER_MESSAGE_NOTIFICATION));
+
+		hr = FilterGetMessage(
+			hPort,
+			&pNotification->Header,
+			FILTER_MESSAGE_NOTIFICATION_SIZE,
+			NULL
 		);
 
-		if (NULL == hThread[ulIndex])
+		if (FAILED(hr))
+		{
+			continue;
+		}
+
+		printf("PID(%d) Get Message!\n", pNotification->Message.ProcessId);
+
+		ZeroMemory(&ReplyMessage, sizeof(FILTER_MESSAGE_REPLY));
+		ReplyMessage.ReplyHeader.MessageId = pNotification->Header.MessageId;
+		ReplyMessage.ReplyHeader.Status = 0;
+		ReplyMessage.Reply.unused = 0;
+
+		hr = FilterReplyMessage(
+			hPort,
+			&ReplyMessage.ReplyHeader,
+			FILTER_MESSAGE_REPLY_SIZE
+		);
+
+		if (FAILED(hr))
 		{
 			break;
 		}
-
-		for (ulRequestIndex = 0; ulRequestIndex < dwRequestCount; ++ulRequestIndex)
-		{
-			pNotification = (PFILTER_MESSAGE_NOTIFICATION)
-				malloc(sizeof(FILTER_MESSAGE_NOTIFICATION));
-
-			if (NULL == pNotification)
-			{
-				break;
-			}
-
-			memset(pNotification, 0, sizeof(FILTER_MESSAGE_NOTIFICATION));
-			memset(&(pNotification->Ovlp), 0, sizeof(OVERLAPPED));
-
-			hr = FilterGetMessage(
-				hPort,
-				&pNotification->Header,
-				FIELD_OFFSET(FILTER_MESSAGE_NOTIFICATION, Ovlp),
-				&pNotification->Ovlp
-			);
-
-			if (hr != HRESULT_FROM_WIN32(ERROR_IO_PENDING))
-			{
-				free(pNotification);
-				pNotification = NULL;
-				break;
-			}
-		}
 	}
 
-	hr = S_OK;
-	WaitForMultipleObjectsEx(ulIndex, hThread, TRUE, INFINITE, FALSE);
-
 _RET:
+	if (NULL != pNotification)
+	{
+		free(pNotification);
+		pNotification = NULL;
+	}
+
 	if (NULL != hPort)
 	{
 		CloseHandle(hPort);
 		hPort = NULL;
 	}
 
-	if (NULL != hCompletion)
-	{
-		CloseHandle(hCompletion);
-		hCompletion = NULL;
-	}
-
-	return;
+	return ;
 }
 
 int main(int argc, char** argv)

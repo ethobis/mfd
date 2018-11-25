@@ -1,10 +1,14 @@
 #include "mfd_handler.h"
 
+#include "../mfd-common/mfd_common.h"
+
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text(PAGE, MFDCreatePreRoutine)
 #pragma alloc_text(PAGE, MFDCleanupPreRoutine)
 #pragma alloc_text(PAGE, MFDCreatePostRoutine)
 #endif
+
+extern FILTER_CONTEXT g_CtxFilter;
 
 //
 // PRE 콜백 루틴
@@ -56,6 +60,10 @@ FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDCreatePostRoutine(
 )
 {
 	FLT_POSTOP_CALLBACK_STATUS FilterRet = FLT_POSTOP_FINISHED_PROCESSING;
+	NTSTATUS status = STATUS_SUCCESS;
+	PFILTER_MESSAGE pFilterMessage = NULL;
+	USER_MESSAGE Reply = { 0, };
+	ULONG ReplyLength = 0;
 
 	PAGED_CODE();
 
@@ -63,6 +71,39 @@ FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDCreatePostRoutine(
 	UNREFERENCED_PARAMETER(pFltObjects);
 	UNREFERENCED_PARAMETER(pCompletionContext);
 	UNREFERENCED_PARAMETER(Flags);
+
+	pFilterMessage = (PFILTER_MESSAGE)ExAllocatePool(PagedPool, sizeof(FILTER_MESSAGE));
+
+	if (NULL == pFilterMessage)
+	{
+		goto _RET;
+	}
+	
+	if (NULL == g_CtxFilter.pClientPort)
+	{
+		goto _RET;
+	}
+
+	RtlZeroMemory(pFilterMessage, sizeof(FILTER_MESSAGE));
+	pFilterMessage->ProcessId = (ULONG)PsGetCurrentProcessId();
+
+	ReplyLength = sizeof(USER_MESSAGE);
+	status = FltSendMessage(
+		g_CtxFilter.pFilter,
+		&g_CtxFilter.pClientPort,
+		pFilterMessage,
+		sizeof(FILTER_MESSAGE),
+		&Reply,
+		&ReplyLength,
+		NULL
+	);
+
+_RET:
+	if (NULL != pFilterMessage)
+	{
+		ExFreePool(pFilterMessage);
+		pFilterMessage = NULL;
+	}
 
 	return FilterRet;
 }

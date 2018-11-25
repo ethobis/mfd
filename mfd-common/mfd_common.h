@@ -6,6 +6,9 @@
 #include <stdint.h>
 #endif
 
+#pragma warning(disable:4302)
+#pragma warning(disable:4311)
+
 #ifndef MAX_PATH
 #define MAX_PATH 260
 #endif
@@ -38,6 +41,7 @@ typedef struct _FILTER_MESSAGE_NOTIFICATION
 	FILTER_MESSAGE Message;
 	OVERLAPPED Ovlp;
 }FILTER_MESSAGE_NOTIFICATION, *PFILTER_MESSAGE_NOTIFICATION;
+#define FILTER_MESSAGE_NOTIFICATION_SIZE (sizeof(FILTER_MESSAGE_HEADER) + sizeof(FILTER_MESSAGE))
 #endif
 
 typedef struct _USER_MESSAGE
@@ -51,4 +55,5 @@ typedef struct _FILTER_MESSAGE_REPLY
 	FILTER_REPLY_HEADER ReplyHeader;
 	USER_MESSAGE Reply;
 }FILTER_MESSAGE_REPLY, *PFILTER_MESSAGE_REPLY;
+#define FILTER_MESSAGE_REPLY_SIZE (sizeof(FILTER_REPLY_HEADER) + sizeof(USER_MESSAGE))
 #endif

@@ -8,8 +8,6 @@
 #pragma alloc_text(PAGE, MFDDisconnect)
 #pragma alloc_text(PAGE, MFDInstanceSetup)
 #pragma alloc_text(PAGE, MFDInstanceTeardown)
-#pragma alloc_text(PAGE, MFDPreRoutine)
-#pragma alloc_text(PAGE, MFDPostRoutine)
 #pragma alloc_text(PAGE, DriverUnload)
 #endif
 
@@ -85,8 +83,6 @@ FLT_PREOP_CALLBACK_STATUS FLTAPI MFDPreRoutine(
 {
 	FLT_PREOP_CALLBACK_STATUS FilterRet = FLT_PREOP_SUCCESS_WITH_CALLBACK;
 
-	PAGED_CODE();
-
 	UNREFERENCED_PARAMETER(pCompletionContext);
 
 	switch (pData->Iopb->MajorFunction)
@@ -118,8 +114,6 @@ FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDPostRoutine(
 )
 {
 	FLT_POSTOP_CALLBACK_STATUS FilterRet = FLT_POSTOP_FINISHED_PROCESSING;
-
-	PAGED_CODE();
 
 	UNREFERENCED_PARAMETER(pCompletionContext);
 

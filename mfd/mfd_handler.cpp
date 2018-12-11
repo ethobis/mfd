@@ -1,6 +1,7 @@
 #include "mfd_handler.h"
 
 #include "../mfd-common/mfd_common.h"
+#include "../mfd-common/mfd_undocumented_10.h"
 
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text(PAGE, MFDCreatePreRoutine)

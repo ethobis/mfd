@@ -56,12 +56,18 @@
     <ClInclude Include="mfd_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="mfd_function.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mfd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mfd_handler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mfd_function.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

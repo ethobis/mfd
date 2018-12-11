@@ -24,6 +24,14 @@ extern "C" {
 		_Out_opt_ PULONG ReturnLength
 	);
 
+	NTKERNELAPI NTSTATUS NTAPI PsAcquireProcessExitSynchronization(
+		_In_ PEPROCESS Process
+	);
+
+	NTKERNELAPI VOID NTAPI PsReleaseProcessExitSynchronization(
+		_In_ PEPROCESS Process
+	);
+
 	//
 	// SYSTEM INFORMATION
 	//
@@ -621,6 +629,15 @@ extern "C" {
 	// KERNEL OBJECT
 	//
 
+#define OBJ_PROTECT_CLOSE 0x00000001
+#define OBJ_AUDIT_OBJECT_CLOSE 0x00000004
+#define OBJ_HANDLE_ATTRIBUTES (OBJ_PROTECT_CLOSE | OBJ_INHERIT | OBJ_AUDIT_OBJECT_CLOSE)
+
+#define ObpAccessProtectCloseBit 0x2000000
+#define ObpDecodeGrantedAccess(Access) ((Access) & ~ObpAccessProtectCloseBit)
+
+	typedef struct _OBJECT_CREATE_INFORMATION OBJECT_CREATE_INFORMATION, *POBJECT_CREATE_INFORMATION;
+
 	typedef struct _OBJECT_HEADER
 	{
 		ULONG_PTR PointerCount;
@@ -664,7 +681,95 @@ extern "C" {
 		};
 		PVOID SecurityDescriptor;
 		struct _QUAD Body;
-	} OBJECT_HEADER, *POBJECT_HEADER;
+	}OBJECT_HEADER, *POBJECT_HEADER;
+
+#define ObjectBasicInformation 0
+#define ObjectTypesInformation 3
+#define ObjectHandleFlagInformation 4
+
+	typedef struct _OBJECT_BASIC_INFORMATION
+	{
+		ULONG Attributes;
+		ACCESS_MASK GrantedAccess;
+		ULONG HandleCount;
+		ULONG PointerCount;
+		ULONG PagedPoolCharge;
+		ULONG NonPagedPoolCharge;
+		ULONG Reserved[3];
+		ULONG NameInfoSize;
+		ULONG TypeInfoSize;
+		ULONG SecurityDescriptorSize;
+		LARGE_INTEGER CreationTime;
+	}OBJECT_BASIC_INFORMATION, *POBJECT_BASIC_INFORMATION;
+
+	typedef struct _OBJECT_TYPE_INFORMATION
+	{
+		UNICODE_STRING TypeName;
+		ULONG TotalNumberOfObjects;
+		ULONG TotalNumberOfHandles;
+		ULONG TotalPagedPoolUsage;
+		ULONG TotalNonPagedPoolUsage;
+		ULONG TotalNamePoolUsage;
+		ULONG TotalHandleTableUsage;
+		ULONG HighWaterNumberOfObjects;
+		ULONG HighWaterNumberOfHandles;
+		ULONG HighWaterPagedPoolUsage;
+		ULONG HighWaterNonPagedPoolUsage;
+		ULONG HighWaterNamePoolUsage;
+		ULONG HighWaterHandleTableUsage;
+		ULONG InvalidAttributes;
+		GENERIC_MAPPING GenericMapping;
+		ULONG ValidAccessMask;
+		BOOLEAN SecurityRequired;
+		BOOLEAN MaintainHandleCount;
+		UCHAR TypeIndex;
+		CHAR ReservedByte;
+		ULONG PoolType;
+		ULONG DefaultPagedPoolCharge;
+		ULONG DefaultNonPagedPoolCharge;
+	}OBJECT_TYPE_INFORMATION, *POBJECT_TYPE_INFORMATION;
+
+	typedef struct _OBJECT_TYPES_INFORMATION
+	{
+		ULONG NumberOfTypes;
+	}OBJECT_TYPES_INFORMATION, *POBJECT_TYPES_INFORMATION;
+
+	typedef struct _OBJECT_HANDLE_FLAG_INFORMATION
+	{
+		BOOLEAN Inherit;
+		BOOLEAN ProtectFromClose;
+	}OBJECT_HANDLE_FLAG_INFORMATION, *POBJECT_HANDLE_FLAG_INFORMATION;
+
+#ifdef _M_X64
+	C_ASSERT(FIELD_OFFSET(OBJECT_HEADER, Body) == 0x030);
+	C_ASSERT(sizeof(OBJECT_HEADER) == 0x038);
+#else
+	C_ASSERT(FIELD_OFFSET(OBJECT_HEADER, Body) == 0x018);
+	C_ASSERT(sizeof(OBJECT_HEADER) == 0x020);
+#endif
+
+#define OBJECT_TO_OBJECT_HEADER(Object) CONTAINING_RECORD((Object), OBJECT_HEADER, Body)
+
+	NTKERNELAPI POBJECT_TYPE NTAPI ObGetObjectType(
+		_In_ PVOID Object
+	);
+
+	NTKERNELAPI NTSTATUS NTAPI ObOpenObjectByName(
+		_In_ POBJECT_ATTRIBUTES ObjectAttributes,
+		_In_ POBJECT_TYPE ObjectType,
+		_In_ KPROCESSOR_MODE PreviousMode,
+		_In_opt_ PACCESS_STATE AccessState,
+		_In_opt_ ACCESS_MASK DesiredAccess,
+		_In_opt_ PVOID ParseContext,
+		_Out_ PHANDLE Handle
+	);
+
+	NTKERNELAPI NTSTATUS NTAPI ObSetHandleAttributes(
+		_In_ HANDLE Handle,
+		_In_ POBJECT_HANDLE_FLAG_INFORMATION HandleFlags,
+		_In_ KPROCESSOR_MODE PreviousMode
+	);
+
 
 	//
 	// APC

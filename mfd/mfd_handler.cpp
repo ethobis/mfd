@@ -1,13 +1,8 @@
 #include "mfd_handler.h"
+#include "mfd_context.h"
+#include "mfd_communication.h"
 
 #include "../mfd-common/mfd_common.h"
-#include "../mfd-common/mfd_undocumented_10.h"
-
-#ifdef ALLOC_PRAGMA
-#pragma alloc_text(PAGE, MFDCreatePreRoutine)
-#pragma alloc_text(PAGE, MFDCleanupPreRoutine)
-#pragma alloc_text(PAGE, MFDCreatePostRoutine)
-#endif
 
 extern FILTER_CONTEXT g_CtxFilter;
 
@@ -23,12 +18,87 @@ FLT_PREOP_CALLBACK_STATUS FLTAPI MFDCreatePreRoutine(
 {
 	FLT_PREOP_CALLBACK_STATUS FilterRet = FLT_PREOP_SUCCESS_WITH_CALLBACK;
 
-	PAGED_CODE();
+	UNREFERENCED_PARAMETER(pData);
+	UNREFERENCED_PARAMETER(pFltObjects);
+	UNREFERENCED_PARAMETER(pCompletionContext);
+
+	return FilterRet;	
+}
+
+FLT_PREOP_CALLBACK_STATUS FLTAPI MFDWritePreRoutine(
+	_Inout_ PFLT_CALLBACK_DATA pData,
+	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+	_Out_ PVOID *pCompletionContext
+)
+{
+	FLT_PREOP_CALLBACK_STATUS FilterRet = FLT_PREOP_SUCCESS_WITH_CALLBACK;
 
 	UNREFERENCED_PARAMETER(pData);
 	UNREFERENCED_PARAMETER(pFltObjects);
 	UNREFERENCED_PARAMETER(pCompletionContext);
 
+	return FilterRet;
+}
+
+FLT_PREOP_CALLBACK_STATUS FLTAPI MFDSetInformationPreRoutine(
+	_Inout_ PFLT_CALLBACK_DATA pData,
+	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+	_Out_ PVOID *pCompletionContext
+)
+{
+	FLT_PREOP_CALLBACK_STATUS FilterRet = FLT_PREOP_SUCCESS_WITH_CALLBACK;
+	ULONG FileInformationClass = 0;
+	PFILE_RENAME_INFORMATION pFileRenameInformation = NULL;
+	PFILE_DISPOSITION_INFORMATION pFileDispositionInformation = NULL;
+	FILTER_BEHAVIOR_TYPE BehaviorType = FilterBehaviorDeafult;
+
+	UNREFERENCED_PARAMETER(pData);
+	UNREFERENCED_PARAMETER(pFltObjects);
+	UNREFERENCED_PARAMETER(pCompletionContext);
+
+	FileInformationClass = pData->Iopb->Parameters.SetFileInformation.FileInformationClass;
+
+	switch (FileInformationClass)
+	{
+	case FileRenameInformation:
+		pFileRenameInformation = (PFILE_RENAME_INFORMATION)pData->Iopb->Parameters.SetFileInformation.InfoBuffer;
+		if (NULL != pFileRenameInformation)
+		{
+			if (pFileRenameInformation->ReplaceIfExists)
+			{
+				BehaviorType = FilterBehaviorOverwrite;
+			}
+			else
+			{
+				BehaviorType = FilterBehaviorRename;
+			}
+		}
+		else
+		{
+			goto _RET;
+		}
+		break;
+	case FileDispositionInformation:
+		pFileDispositionInformation = (PFILE_DISPOSITION_INFORMATION)pData->Iopb->Parameters.SetFileInformation.InfoBuffer;
+		if (NULL != pFileDispositionInformation)
+		{
+			if (FALSE == pFileDispositionInformation->DeleteFile)
+			{
+				goto _RET;
+			}
+
+			BehaviorType = FilterBehaviorDelete;
+		}
+		else
+		{
+			goto _RET;
+		}
+		break;
+	default:
+		goto _RET;
+	}
+
+_RET:
 	return FilterRet;
 }
 
@@ -39,8 +109,6 @@ FLT_PREOP_CALLBACK_STATUS FLTAPI MFDCleanupPreRoutine(
 )
 {
 	FLT_PREOP_CALLBACK_STATUS FilterRet = FLT_PREOP_SUCCESS_WITH_CALLBACK;
-
-	PAGED_CODE();
 
 	UNREFERENCED_PARAMETER(pData);
 	UNREFERENCED_PARAMETER(pFltObjects);
@@ -61,50 +129,11 @@ FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDCreatePostRoutine(
 )
 {
 	FLT_POSTOP_CALLBACK_STATUS FilterRet = FLT_POSTOP_FINISHED_PROCESSING;
-	NTSTATUS status = STATUS_SUCCESS;
-	PFILTER_MESSAGE pFilterMessage = NULL;
-	USER_MESSAGE Reply = { 0, };
-	ULONG ReplyLength = 0;
-
-	PAGED_CODE();
 
 	UNREFERENCED_PARAMETER(pData);
 	UNREFERENCED_PARAMETER(pFltObjects);
 	UNREFERENCED_PARAMETER(pCompletionContext);
 	UNREFERENCED_PARAMETER(Flags);
-
-	pFilterMessage = (PFILTER_MESSAGE)ExAllocatePool(PagedPool, sizeof(FILTER_MESSAGE));
-
-	if (NULL == pFilterMessage)
-	{
-		goto _RET;
-	}
-	
-	if (NULL == g_CtxFilter.pClientPort)
-	{
-		goto _RET;
-	}
-
-	RtlZeroMemory(pFilterMessage, sizeof(FILTER_MESSAGE));
-	pFilterMessage->ProcessId = (ULONG)PsGetCurrentProcessId();
-
-	ReplyLength = sizeof(USER_MESSAGE);
-	status = FltSendMessage(
-		g_CtxFilter.pFilter,
-		&g_CtxFilter.pClientPort,
-		pFilterMessage,
-		sizeof(FILTER_MESSAGE),
-		&Reply,
-		&ReplyLength,
-		NULL
-	);
-
-_RET:
-	if (NULL != pFilterMessage)
-	{
-		ExFreePool(pFilterMessage);
-		pFilterMessage = NULL;
-	}
 
 	return FilterRet;
 }

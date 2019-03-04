@@ -59,6 +59,15 @@
     <ClInclude Include="mfd_function.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="mfd_cache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mfd_communication.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mfd_context.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mfd.cpp">
@@ -68,6 +77,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="mfd_function.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mfd_cache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mfd_communication.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mfd_context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -5,13 +5,25 @@
 // PRE 콜백 루틴
 //
 
-EXTERN_C FLT_PREOP_CALLBACK_STATUS FLTAPI MFDCreatePreRoutine(
+FLT_PREOP_CALLBACK_STATUS FLTAPI MFDCreatePreRoutine(
 	_Inout_ PFLT_CALLBACK_DATA pData,
 	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
 	_Out_ PVOID *pCompletionContext
 );
 
-EXTERN_C FLT_PREOP_CALLBACK_STATUS FLTAPI MFDCleanupPreRoutine(
+FLT_PREOP_CALLBACK_STATUS FLTAPI MFDWritePreRoutine(
+	_Inout_ PFLT_CALLBACK_DATA pData,
+	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+	_Out_ PVOID *pCompletionContext
+);
+
+FLT_PREOP_CALLBACK_STATUS FLTAPI MFDSetInformationPreRoutine(
+	_Inout_ PFLT_CALLBACK_DATA pData,
+	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
+	_Out_ PVOID *pCompletionContext
+);
+
+FLT_PREOP_CALLBACK_STATUS FLTAPI MFDCleanupPreRoutine(
 	_Inout_ PFLT_CALLBACK_DATA pData,
 	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
 	_Out_ PVOID *pCompletionContext
@@ -21,7 +33,7 @@ EXTERN_C FLT_PREOP_CALLBACK_STATUS FLTAPI MFDCleanupPreRoutine(
 // POST 콜백 루틴
 //
 
-EXTERN_C FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDCreatePostRoutine(
+FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDCreatePostRoutine(
 	_Inout_ PFLT_CALLBACK_DATA pData,
 	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
 	_In_opt_ PVOID pCompletionContext,

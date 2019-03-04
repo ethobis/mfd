@@ -2,18 +2,81 @@
 #ifdef _KERNEL_MODE
 #include <fltkernel.h>
 #else
+#include <stdio.h>
 #include <Windows.h>
+#include <process.h>
 #include <stdint.h>
-#endif
 
-#pragma warning(disable:4302)
-#pragma warning(disable:4311)
+#include <fltUser.h>
+#pragma comment(lib, "fltlib.lib")
+
+#include "Setupapi.h"
+#pragma comment(lib, "Setupapi.lib")
+#endif
 
 #ifndef MAX_PATH
 #define MAX_PATH 260
 #endif
 
-#define MFD_FILTER_NAME L"\\mfd"
+//
+// Filter <-> User Connection
+//
+
+#define MFD_SCAN_NAME L"\\mfdScan"
+#define MFD_ABORT_NAME L"\\mfdAbort"
+#define MFD_QUERY_NAME L"\\mfdQuery"
+
+typedef enum _FILTER_MESSAGE_TYPE
+{
+	FilterMessageStartScanning,
+	FilterMessageAbortScanning,
+	FilterMessageUnloading	
+}FILTER_MESSAGE_TYPE;
+
+typedef enum _FILTER_COMMAND_TYPE
+{
+	FilterCommandIsFileModified,
+	FilterCommandCreateSectionForDataScan,
+	FilterCommandCloseSectionForDataScan
+}FILTER_COMMAND_TYPE;
+
+typedef enum _FILTER_REASON_TYPE
+{
+	FilterReasonOpen,
+	FilterReasonCleanup
+}FILTER_REASON_TYPE;
+
+typedef enum _FILTER_RESULT_TYPE
+{
+	FilterResultUndetermined,
+	FilterResultInfected,
+	FilterResultClean
+}FILTER_RESULT_TYPE;
+
+typedef enum _FILTER_CONNECTION_TYPE
+{
+	FilterConnectionForScan = 1,
+	FilterConnectionForAbort,
+	FilterConnectionForQuery
+}FILTER_CONNECTION_TYPE, *PFILTER_CONNECTION_TYPE;
+
+typedef struct _FILTER_CONNECTION
+{
+	FILTER_CONNECTION_TYPE Type;
+}FILTER_CONNECTION, *PFILTER_CONNECTION;
+
+//
+// FilterSendMessage -> FltMessageNotify Routine
+//
+
+typedef struct _FILTER_COMMAND
+{
+	FILTER_COMMAND_TYPE Type;
+	LONGLONG ScanId;
+	ULONG ThreadId;
+	HANDLE FileHandle;
+	FILTER_RESULT_TYPE Result;
+}FILTER_COMMAND, *PFILTER_COMMAND;
 
 //
 // FltSendMessage -> FilterGetMessage
@@ -21,8 +84,10 @@
 
 typedef struct _FILTER_MESSAGE
 {
-	ULONG ProcessId;
-	WCHAR FilePath[MAX_PATH];
+	FILTER_MESSAGE_TYPE Type;
+	FILTER_REASON_TYPE Reason;
+	LONGLONG ScanId;
+	ULONG ScanThreadId;
 }FILTER_MESSAGE, *PFILTER_MESSAGE;
 
 #ifndef _KERNEL_MODE
@@ -39,45 +104,11 @@ typedef struct _FILTER_MESSAGE_NOTIFICATION
 // FilterReplyMessage -> Completion of FltSendMessage 
 //
 
-typedef struct _USER_MESSAGE
-{
-	ULONG unused;
-}USER_MESSAGE, *PUSER_MESSAGE;
-
 #ifndef _KERNEL_MODE
 typedef struct _FILTER_MESSAGE_REPLY
 {
 	FILTER_REPLY_HEADER ReplyHeader;
-	USER_MESSAGE Reply;
+	ULONG ThreadId;
 }FILTER_MESSAGE_REPLY, *PFILTER_MESSAGE_REPLY;
-#define FILTER_MESSAGE_REPLY_SIZE (sizeof(FILTER_REPLY_HEADER) + sizeof(USER_MESSAGE))
-#endif
-
-//
-// Kernel Mode Filtering Context
-//
-
-#ifdef _KERNEL_MODE
-typedef struct _FILTER_CONTEXT
-{
-	PFLT_FILTER pFilter;
-	PFLT_PORT pServerPort;
-	PFLT_PORT pClientPort;
-}FILTER_CONTEXT, *PFILTER_CONTEXT;
-
-typedef struct _FILTER_IO_CONTEXT
-{
-	ULONG ProcessId;
-	WCHAR FilePath[MAX_PATH];
-}FILTER_IO_CONTEXT, *PFILTER_IO_CONTEXT;
-
-typedef struct _FILTER_STREAMHANDLE_CONTEXT
-{
-	FILTER_IO_CONTEXT FilterIoContext;
-}FILTER_STREAMHANDLE_CONTEXT, *PFILTER_STREAMHANDLE_CONTEXT;
-
-typedef struct _FILTER_STREAM_CONTEXT
-{
-	FILTER_IO_CONTEXT FilterIoContext;
-}FILTER_STREAM_CONTEXT, *PFILTER_STREAM_CONTEXT;
+#define FILTER_MESSAGE_REPLY_SIZE (sizeof(FILTER_REPLY_HEADER) + sizeof(ULONG))
 #endif

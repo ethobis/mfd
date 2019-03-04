@@ -1,5 +1,6 @@
 #include "mfd.h"
 #include "mfd_handler.h"
+#include "mfd_communication.h"
 
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text(INIT, DriverEntry)
@@ -8,10 +9,12 @@
 #pragma alloc_text(PAGE, MFDDisconnect)
 #pragma alloc_text(PAGE, MFDInstanceSetup)
 #pragma alloc_text(PAGE, MFDInstanceTeardown)
+#pragma alloc_text(PAGE, MFDCreateCommPort)
+#pragma alloc_text(PAGE, MFDCloseCommPort)
 #pragma alloc_text(PAGE, DriverUnload)
 #endif
 
-FILTER_CONTEXT g_CtxFilter = { NULL, };
+FILTER_CONTEXT g_CtxFilter = { 0, };
 
 NTSTATUS FLTAPI MFDConnect(
 	_In_ PFLT_PORT pClientPort,
@@ -22,15 +25,59 @@ NTSTATUS FLTAPI MFDConnect(
 )
 {
 	NTSTATUS status = STATUS_SUCCESS;
+	PFILTER_CONNECTION pConnection = (PFILTER_CONNECTION)pvConnectionContext;
+	PFILTER_CONNECTION_TYPE ConnectionType = NULL;
 
 	PAGED_CODE();
 
 	UNREFERENCED_PARAMETER(pvServerPortCookie);
-	UNREFERENCED_PARAMETER(pvConnectionContext);
 	UNREFERENCED_PARAMETER(ulSizeOfContext);
-	UNREFERENCED_PARAMETER(pvConnectionCookie);
 
-	g_CtxFilter.pClientPort = pClientPort;
+	if (pConnection == NULL)
+	{
+		return STATUS_INVALID_PARAMETER_3;
+	}
+
+	ConnectionType = (PFILTER_CONNECTION_TYPE)ExAllocatePoolWithTag(
+		PagedPool,
+		sizeof(FILTER_CONNECTION_TYPE),
+		FILTER_CONNECTION_TAG
+	);
+
+	if (ConnectionType == NULL)
+	{
+		status = STATUS_INSUFFICIENT_RESOURCES;
+		goto _RET;
+	}
+
+	*ConnectionType = pConnection->Type;
+	
+	switch (pConnection->Type)
+	{
+	case FilterConnectionForScan:
+		g_CtxFilter.pScanClientPort = pClientPort;		
+		break;
+	case FilterConnectionForAbort:
+		g_CtxFilter.pAbortClientPort = pClientPort;
+		break;
+	case FilterConnectionForQuery:
+		g_CtxFilter.pQueryClientPort = pClientPort;
+		break;
+	default:
+		status = STATUS_INVALID_PARAMETER_3;
+		goto _RET;
+	}
+
+	*pvConnectionCookie = ConnectionType;
+
+	return status;
+
+_RET:
+	if (ConnectionType != NULL)
+	{
+		ExFreePoolWithTag(ConnectionType, FILTER_CONNECTION_TAG);
+		ConnectionType = NULL;
+	}
 
 	return status;
 }
@@ -62,74 +109,59 @@ VOID FLTAPI MFDDisconnect(
 	_In_ PVOID pvConnectionCookie
 )
 {
+	PFILTER_CONNECTION_TYPE pConnectionType = (PFILTER_CONNECTION_TYPE)pvConnectionCookie;
+
 	PAGED_CODE();
 
-	UNREFERENCED_PARAMETER(pvConnectionCookie);
-
-	if (NULL != g_CtxFilter.pClientPort)
+	if (pConnectionType == NULL)
 	{
-		FltCloseClientPort(g_CtxFilter.pFilter, &g_CtxFilter.pClientPort);
-		g_CtxFilter.pClientPort = NULL;
+		return;
 	}
+
+	switch (*pConnectionType)
+	{
+	case FilterConnectionForScan:
+		FltCloseClientPort(g_CtxFilter.pFilter, &g_CtxFilter.pScanClientPort);
+		g_CtxFilter.pScanClientPort = NULL;
+		break;
+	case FilterConnectionForAbort:
+		FltCloseClientPort(g_CtxFilter.pFilter, &g_CtxFilter.pAbortClientPort);
+		g_CtxFilter.pAbortClientPort = NULL;
+		break;
+	case FilterConnectionForQuery:
+		FltCloseClientPort(g_CtxFilter.pFilter, &g_CtxFilter.pQueryClientPort);
+		g_CtxFilter.pQueryClientPort = NULL;
+		break;
+	default:
+		return;
+	}
+
+	ExFreePoolWithTag(pConnectionType, FILTER_CONNECTION_TAG);
+	pConnectionType = NULL;
 
 	return;
 }
 
-FLT_PREOP_CALLBACK_STATUS FLTAPI MFDPreRoutine(
-	_Inout_ PFLT_CALLBACK_DATA pData,
-	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
-	_Out_ PVOID *pCompletionContext
+VOID MFDStreamContextCleanup(
+	_In_ PFLT_CONTEXT pContext,
+	_In_ FLT_CONTEXT_TYPE ContextType
 )
 {
-	FLT_PREOP_CALLBACK_STATUS FilterRet = FLT_PREOP_SUCCESS_WITH_CALLBACK;
+	UNREFERENCED_PARAMETER(pContext);
+	UNREFERENCED_PARAMETER(ContextType);
 
-	UNREFERENCED_PARAMETER(pCompletionContext);
-
-	switch (pData->Iopb->MajorFunction)
-	{
-	case IRP_MJ_CREATE:
-		FilterRet = MFDCreatePreRoutine(
-			pData,
-			pFltObjects,
-			pCompletionContext
-		);
-		break;
-	case IRP_MJ_CLEANUP:
-		FilterRet = MFDCleanupPreRoutine(
-			pData,
-			pFltObjects,
-			pCompletionContext
-		);		
-		break;
-	}
-
-	return FilterRet;
+	return;
 }
 
-FLT_POSTOP_CALLBACK_STATUS FLTAPI MFDPostRoutine(
-	_Inout_ PFLT_CALLBACK_DATA pData,
-	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
-	_In_opt_ PVOID pCompletionContext,
-	_In_ FLT_POST_OPERATION_FLAGS Flags
+VOID MFDInstanceContextCleanup(
+	_In_ PFLT_CONTEXT pContext,
+	_In_ FLT_CONTEXT_TYPE ContextType
 )
 {
-	FLT_POSTOP_CALLBACK_STATUS FilterRet = FLT_POSTOP_FINISHED_PROCESSING;
+	UNREFERENCED_PARAMETER(pContext);
+	UNREFERENCED_PARAMETER(ContextType);
 
-	UNREFERENCED_PARAMETER(pCompletionContext);
-
-	switch (pData->Iopb->MajorFunction)
-	{
-	case IRP_MJ_CREATE:
-		FilterRet = MFDCreatePostRoutine(
-			pData,
-			pFltObjects,
-			pCompletionContext,
-			Flags
-		);
-		break;
-	}
-
-	return FilterRet;
+	return;
 }
 
 NTSTATUS FLTAPI MFDInstanceSetup(
@@ -160,7 +192,92 @@ VOID FLTAPI MFDInstanceTeardown(
 
 	UNREFERENCED_PARAMETER(pFltObjects);
 	UNREFERENCED_PARAMETER(Reason);
+
 	return;
+}
+
+VOID MFDCloseCommPort(
+	_In_ FILTER_CONNECTION_TYPE  ConnectionType
+)
+{
+	PFLT_PORT pServerPort = NULL;
+
+	PAGED_CODE();
+
+	switch (ConnectionType)
+	{
+	case FilterConnectionForScan:
+		pServerPort = g_CtxFilter.pScanServerPort;
+		break;
+	case FilterConnectionForAbort:
+		pServerPort = g_CtxFilter.pAbortServerPort;
+		break;
+	case FilterConnectionForQuery:
+		pServerPort = g_CtxFilter.pQueryServerPort;
+		break;
+	}
+
+	if (pServerPort != NULL)
+	{
+		FltCloseCommunicationPort(pServerPort);
+		pServerPort = NULL;
+	}
+
+	return;
+}
+
+NTSTATUS MFDCreateCommPort(
+	_In_ PSECURITY_DESCRIPTOR pSecurityDescriptor,
+	_In_ FILTER_CONNECTION_TYPE  ConnectionType
+)
+{
+	NTSTATUS status = STATUS_SUCCESS;
+	PCWSTR pcwPortName = NULL;
+	PFLT_PORT* pServerPort = NULL;
+	UNICODE_STRING uniPortName = { 0, };
+	OBJECT_ATTRIBUTES oa = { 0, };
+
+	PAGED_CODE();
+
+	switch (ConnectionType)
+	{
+	case FilterConnectionForScan:
+		pcwPortName = MFD_SCAN_NAME;
+		pServerPort = &g_CtxFilter.pScanServerPort;
+		break;
+	case FilterConnectionForAbort:
+		pcwPortName = MFD_ABORT_NAME;
+		pServerPort = &g_CtxFilter.pAbortServerPort;
+		break;
+	case FilterConnectionForQuery:
+		pcwPortName = MFD_QUERY_NAME;
+		pServerPort = &g_CtxFilter.pQueryServerPort;
+		break;
+	default:
+		return STATUS_INVALID_PARAMETER;
+	}
+
+	RtlInitUnicodeString(&uniPortName, pcwPortName);
+	InitializeObjectAttributes(
+		&oa,
+		&uniPortName,
+		OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE,
+		NULL,
+		pSecurityDescriptor
+	);
+
+	status = FltCreateCommunicationPort(
+		g_CtxFilter.pFilter,
+		pServerPort,
+		&oa,
+		NULL,
+		(PFLT_CONNECT_NOTIFY)MFDConnect,
+		(PFLT_DISCONNECT_NOTIFY)MFDDisconnect,
+		(PFLT_MESSAGE_NOTIFY)MFDReceive,
+		1
+	);
+
+	return status;
 }
 
 NTSTATUS FLTAPI DriverUnload(
@@ -173,11 +290,9 @@ NTSTATUS FLTAPI DriverUnload(
 
 	UNREFERENCED_PARAMETER(Flags);
 
-	if (NULL != g_CtxFilter.pServerPort)
-	{
-		FltCloseCommunicationPort(g_CtxFilter.pServerPort);
-		g_CtxFilter.pServerPort = NULL;
-	}
+	MFDCloseCommPort(FilterConnectionForScan);
+	MFDCloseCommPort(FilterConnectionForAbort);
+	MFDCloseCommPort(FilterConnectionForQuery);
 
 	if (NULL != g_CtxFilter.pFilter)
 	{
@@ -220,32 +335,29 @@ NTSTATUS DriverEntry(
 	{
 		goto _RET;
 	}
+	
+	status = MFDCreateCommPort(seucirtyDescriptor, FilterConnectionForScan);
 
-	RtlInitUnicodeString(&uniPortName, MFD_FILTER_NAME);
-	InitializeObjectAttributes(
-		&oa,
-		&uniPortName,
-		OBJ_KERNEL_HANDLE | OBJ_CASE_INSENSITIVE,
-		NULL,
-		seucirtyDescriptor
-	);
-
-	status = FltCreateCommunicationPort(
-		g_CtxFilter.pFilter,
-		&g_CtxFilter.pServerPort,
-		&oa,
-		NULL,
-		(PFLT_CONNECT_NOTIFY)MFDConnect,
-		(PFLT_DISCONNECT_NOTIFY)MFDDisconnect,
-		(PFLT_MESSAGE_NOTIFY)MFDReceive,
-		1
-	);
-
-	FltFreeSecurityDescriptor(seucirtyDescriptor);
 	if (!NT_SUCCESS(status))
 	{
 		goto _RET;
 	}
+
+	status = MFDCreateCommPort(seucirtyDescriptor, FilterConnectionForAbort);
+
+	if (!NT_SUCCESS(status))
+	{
+		goto _RET;
+	}
+
+	status = MFDCreateCommPort(seucirtyDescriptor, FilterConnectionForQuery);
+
+	if (!NT_SUCCESS(status))
+	{
+		goto _RET;
+	}
+
+	FltFreeSecurityDescriptor(seucirtyDescriptor);
 
 	status = FltStartFiltering(g_CtxFilter.pFilter);
 
@@ -257,12 +369,10 @@ NTSTATUS DriverEntry(
 	return status;
 
 _RET:
-	if (NULL != g_CtxFilter.pServerPort)
-	{
-		FltCloseCommunicationPort(g_CtxFilter.pServerPort);
-		g_CtxFilter.pServerPort = NULL;
-	}
-
+	MFDCloseCommPort(FilterConnectionForScan);
+	MFDCloseCommPort(FilterConnectionForAbort);
+	MFDCloseCommPort(FilterConnectionForQuery);
+	
 	if (NULL != g_CtxFilter.pFilter)
 	{
 		FltUnregisterFilter(g_CtxFilter.pFilter);

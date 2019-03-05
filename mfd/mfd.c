@@ -2,11 +2,6 @@
 #include "mfd_handler.h"
 #include "mfd_communication.h"
 
-#include <ntimage.h>
-#include "Zydis/Zydis.h"
-#include "..\mfd-common\mfd_undocument.h"
-
-
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text(INIT, DriverEntry)
 #pragma alloc_text(PAGE, MFDConnect)

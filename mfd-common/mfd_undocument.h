@@ -1,6 +1,7 @@
 #pragma once
 #ifdef _KERNEL_MODE
 #include <ntddk.h>
+#include <ntimage.h>
 #pragma warning(disable:4214)
 #pragma warning(disable:4201)
 #pragma warning(disable:4311)

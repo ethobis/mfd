@@ -92,17 +92,24 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Link>
       <AdditionalDependencies>fltmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
     </Link>
     <ClCompile>
       <PrecompiledHeaderFile />
     </ClCompile>
     <ClCompile>
       <PrecompiledHeaderOutputFile />
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalIncludeDirectories>$(SolutionDir)mfd-library\Zydis\include;$(SolutionDir)mfd-library\Zydis\src;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZYDIS_NO_LIBC;ZYDIS_STATIC_DEFINE;POOL_NX_OPTIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Link>
       <AdditionalDependencies>fltmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
     </Link>
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -114,22 +121,32 @@
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalIncludeDirectories>$(SolutionDir)mfd-library\Zydis\include;$(SolutionDir)mfd-library\Zydis\src;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZYDIS_NO_LIBC;ZYDIS_STATIC_DEFINE;POOL_NX_OPTIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
       <AdditionalDependencies>fltmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
     </Link>
     <ClCompile>
       <PrecompiledHeaderFile />
     </ClCompile>
     <ClCompile>
       <PrecompiledHeaderOutputFile />
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalIncludeDirectories>$(SolutionDir)mfd-library\Zydis\include;$(SolutionDir)mfd-library\Zydis\src;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZYDIS_NO_LIBC;ZYDIS_STATIC_DEFINE;POOL_NX_OPTIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
       <AdditionalDependencies>fltmgr.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
     </Link>
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -141,6 +158,9 @@
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <AdditionalIncludeDirectories>$(SolutionDir)mfd-library\Zydis\include;$(SolutionDir)mfd-library\Zydis\src;$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>ZYDIS_NO_LIBC;ZYDIS_STATIC_DEFINE;POOL_NX_OPTIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -149,24 +169,66 @@
   <ItemGroup>
     <ClInclude Include="..\mfd-common\mfd_common.h" />
     <ClInclude Include="..\mfd-common\mfd_undocument.h" />
-    <ClInclude Include="..\mfd-common\mfd_undocumented_10.h" />
-    <ClInclude Include="..\mfd-common\mfd_undocumented_7.h" />
-    <ClInclude Include="..\mfd-common\mfd_undocumented_8.h" />
-    <ClInclude Include="..\mfd-common\mfd_undocumented_8_1.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\CommonTypes.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Decoder.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\DecoderTypes.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Defines.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Formatter.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Generated\EnumInstructionCategory.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Generated\EnumISAExt.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Generated\EnumISASet.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Generated\EnumMnemonic.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Generated\EnumRegister.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Internal\DecoderData.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Internal\LibC.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Internal\SharedData.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\MetaInfo.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Mnemonic.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Register.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\SharedTypes.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Status.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\String.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Utils.h" />
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Zydis.h" />
     <ClInclude Include="mfd.h" />
     <ClInclude Include="mfd_cache.h" />
     <ClInclude Include="mfd_communication.h" />
+    <ClInclude Include="mfd_disassemble.h" />
     <ClInclude Include="mfd_function.h" />
     <ClInclude Include="mfd_handler.h" />
     <ClInclude Include="mfd_context.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="mfd.cpp" />
-    <ClCompile Include="mfd_cache.cpp" />
-    <ClCompile Include="mfd_communication.cpp" />
-    <ClCompile Include="mfd_function.cpp" />
-    <ClCompile Include="mfd_handler.cpp" />
-    <ClCompile Include="mfd_context.cpp" />
+    <ClCompile Include="..\mfd-library\Zydis\src\Decoder.c" />
+    <ClCompile Include="..\mfd-library\Zydis\src\DecoderData.c" />
+    <ClCompile Include="..\mfd-library\Zydis\src\Formatter.c" />
+    <ClCompile Include="..\mfd-library\Zydis\src\MetaInfo.c" />
+    <ClCompile Include="..\mfd-library\Zydis\src\Mnemonic.c" />
+    <ClCompile Include="..\mfd-library\Zydis\src\Register.c" />
+    <ClCompile Include="..\mfd-library\Zydis\src\SharedData.c" />
+    <ClCompile Include="..\mfd-library\Zydis\src\String.c" />
+    <ClCompile Include="..\mfd-library\Zydis\src\Utils.c" />
+    <ClCompile Include="..\mfd-library\Zydis\src\Zydis.c" />
+    <ClCompile Include="mfd.c" />
+    <ClCompile Include="mfd_cache.c" />
+    <ClCompile Include="mfd_communication.c" />
+    <ClCompile Include="mfd_disassemble.c" />
+    <ClCompile Include="mfd_function.c" />
+    <ClCompile Include="mfd_handler.c" />
+    <ClCompile Include="mfd_context.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\mfd-library\Zydis\src\Generated\AccessedFlags.inc" />
+    <None Include="..\mfd-library\Zydis\src\Generated\DecoderTables.inc" />
+    <None Include="..\mfd-library\Zydis\src\Generated\EncodableInstructions.inc" />
+    <None Include="..\mfd-library\Zydis\src\Generated\EnumInstructionCategory.inc" />
+    <None Include="..\mfd-library\Zydis\src\Generated\EnumISAExt.inc" />
+    <None Include="..\mfd-library\Zydis\src\Generated\EnumISASet.inc" />
+    <None Include="..\mfd-library\Zydis\src\Generated\EnumMnemonic.inc" />
+    <None Include="..\mfd-library\Zydis\src\Generated\EnumRegister.inc" />
+    <None Include="..\mfd-library\Zydis\src\Generated\InstructionDefinitions.inc" />
+    <None Include="..\mfd-library\Zydis\src\Generated\InstructionEncodings.inc" />
+    <None Include="..\mfd-library\Zydis\src\Generated\OperandDefinitions.inc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

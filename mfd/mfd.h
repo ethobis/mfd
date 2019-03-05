@@ -3,7 +3,7 @@
 
 #include "..\mfd-common\mfd_common.h"
 
-EXTERN_C NTSTATUS FLTAPI MFDReceive(
+NTSTATUS FLTAPI MFDReceive(
 	_In_ PVOID pvConnectionCookie,
 	_In_ PVOID pvInputBuffer,
 	_In_ ULONG ulInputBufferSize,
@@ -12,7 +12,7 @@ EXTERN_C NTSTATUS FLTAPI MFDReceive(
 	_Out_ PULONG pulRetOutputBufferSize
 );
 
-EXTERN_C NTSTATUS FLTAPI MFDConnect(
+NTSTATUS FLTAPI MFDConnect(
 	_In_ PFLT_PORT pClientPort,
 	_In_ PVOID pvServerPortCookie,
 	_In_ PVOID pvConnectionContext,
@@ -20,55 +20,52 @@ EXTERN_C NTSTATUS FLTAPI MFDConnect(
 	_In_ PVOID *pvConnectionCookie
 );
 
-EXTERN_C VOID FLTAPI MFDDisconnect(
+VOID FLTAPI MFDDisconnect(
 	_In_ PVOID pvConnectionCookie
 );
 
-EXTERN_C VOID MFDStreamContextCleanup(
+VOID MFDStreamContextCleanup(
 	_In_ PFLT_CONTEXT pContext,
 	_In_ FLT_CONTEXT_TYPE ContextType
 );
 
-EXTERN_C VOID MFDInstanceContextCleanup(
+VOID MFDInstanceContextCleanup(
 	_In_ PFLT_CONTEXT pContext,
 	_In_ FLT_CONTEXT_TYPE ContextType
 );
 
-EXTERN_C NTSTATUS FLTAPI MFDInstanceSetup(
+NTSTATUS FLTAPI MFDInstanceSetup(
 	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
 	_In_ FLT_INSTANCE_SETUP_FLAGS Flags,
 	_In_ DEVICE_TYPE VolumeDeviceType,
 	_In_ FLT_FILESYSTEM_TYPE VolumeFilesystemType
 );
 
-EXTERN_C VOID FLTAPI MFDInstanceTeardown(
+VOID FLTAPI MFDInstanceTeardown(
 	_In_ PCFLT_RELATED_OBJECTS pFltObjects,
 	_In_ FLT_INSTANCE_TEARDOWN_FLAGS Reason
 );
 
-EXTERN_C VOID MFDCloseCommPort(
+VOID MFDCloseCommPort(
 	_In_ FILTER_CONNECTION_TYPE  ConnectionType
 );
 
-EXTERN_C NTSTATUS MFDCreateCommPort(
+NTSTATUS MFDCreateCommPort(
 	_In_ PSECURITY_DESCRIPTOR pSecurityDescriptor,
 	_In_ FILTER_CONNECTION_TYPE  ConnectionType
 );
 
-EXTERN_C NTSTATUS FLTAPI DriverUnload(
+NTSTATUS FLTAPI DriverUnload(
 	_In_ FLT_FILTER_UNLOAD_FLAGS Flags
 );
 
-EXTERN_C NTSTATUS DriverEntry(
-	_In_ PDRIVER_OBJECT pDriverObject,
-	_In_ PUNICODE_STRING puniRegistryPath
-);
+DRIVER_INITIALIZE DriverEntry;
 
 CONST FLT_OPERATION_REGISTRATION Callbacks[] =
 {
 	{
 		IRP_MJ_CREATE,
-		FLTFL_OPERATION_REGISTRATION_SKIP_PAGING_IO,
+		0,
 		MFDCreatePreRoutine,
 		MFDCreatePostRoutine
 	},
@@ -86,7 +83,7 @@ CONST FLT_OPERATION_REGISTRATION Callbacks[] =
 	},
 	{
 		IRP_MJ_CLEANUP,
-		FLTFL_OPERATION_REGISTRATION_SKIP_PAGING_IO,
+		0,
 		MFDCleanupPreRoutine,
 		NULL
 	},

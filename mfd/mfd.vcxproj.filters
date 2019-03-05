@@ -20,6 +20,27 @@
     <Filter Include="Common">
       <UniqueIdentifier>{45bdc8d9-7c5d-4b9e-b5c5-7db4c3266b23}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Library">
+      <UniqueIdentifier>{438a3e63-520b-411c-a681-8c791a791e94}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\Zydis">
+      <UniqueIdentifier>{b0586578-4276-4d73-adf5-24eee65c7659}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\Zydis\include">
+      <UniqueIdentifier>{75a8692d-cb12-4ac3-9804-1afcef03457b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\Zydis\include\Generated">
+      <UniqueIdentifier>{fd31cf42-bfde-4036-a9da-9eabde0958a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\Zydis\include\Internal">
+      <UniqueIdentifier>{7afeb157-b65e-43e1-b0ec-496048a19d8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\Zydis\src">
+      <UniqueIdentifier>{080dc0c0-2b03-4fdc-bdba-47fd3ca7f09e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library\Zydis\src\Generated">
+      <UniqueIdentifier>{0b9a0c0a-6098-427f-a7cf-03cfbb156752}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="mfd.inf">
@@ -36,18 +57,6 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="..\mfd-common\mfd_undocument.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\mfd-common\mfd_undocumented_7.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\mfd-common\mfd_undocumented_8.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\mfd-common\mfd_undocumented_8_1.h">
-      <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\mfd-common\mfd_undocumented_10.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="mfd.h">
@@ -68,25 +77,159 @@
     <ClInclude Include="mfd_context.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\CommonTypes.h">
+      <Filter>Library\Zydis\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Decoder.h">
+      <Filter>Library\Zydis\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\DecoderTypes.h">
+      <Filter>Library\Zydis\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Defines.h">
+      <Filter>Library\Zydis\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Formatter.h">
+      <Filter>Library\Zydis\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\MetaInfo.h">
+      <Filter>Library\Zydis\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Mnemonic.h">
+      <Filter>Library\Zydis\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Register.h">
+      <Filter>Library\Zydis\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\SharedTypes.h">
+      <Filter>Library\Zydis\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Status.h">
+      <Filter>Library\Zydis\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\String.h">
+      <Filter>Library\Zydis\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Utils.h">
+      <Filter>Library\Zydis\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Zydis.h">
+      <Filter>Library\Zydis\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Generated\EnumInstructionCategory.h">
+      <Filter>Library\Zydis\include\Generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Generated\EnumISAExt.h">
+      <Filter>Library\Zydis\include\Generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Generated\EnumISASet.h">
+      <Filter>Library\Zydis\include\Generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Generated\EnumMnemonic.h">
+      <Filter>Library\Zydis\include\Generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Generated\EnumRegister.h">
+      <Filter>Library\Zydis\include\Generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Internal\DecoderData.h">
+      <Filter>Library\Zydis\include\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Internal\LibC.h">
+      <Filter>Library\Zydis\include\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\mfd-library\Zydis\include\Zydis\Internal\SharedData.h">
+      <Filter>Library\Zydis\include\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="mfd_disassemble.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="mfd.cpp">
+    <ClCompile Include="mfd.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mfd_handler.cpp">
+    <ClCompile Include="mfd_cache.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mfd_function.cpp">
+    <ClCompile Include="mfd_communication.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mfd_cache.cpp">
+    <ClCompile Include="mfd_context.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mfd_communication.cpp">
+    <ClCompile Include="mfd_function.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mfd_context.cpp">
+    <ClCompile Include="mfd_handler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\mfd-library\Zydis\src\Decoder.c">
+      <Filter>Library\Zydis\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\mfd-library\Zydis\src\DecoderData.c">
+      <Filter>Library\Zydis\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\mfd-library\Zydis\src\Formatter.c">
+      <Filter>Library\Zydis\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\mfd-library\Zydis\src\MetaInfo.c">
+      <Filter>Library\Zydis\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\mfd-library\Zydis\src\Mnemonic.c">
+      <Filter>Library\Zydis\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\mfd-library\Zydis\src\Register.c">
+      <Filter>Library\Zydis\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\mfd-library\Zydis\src\SharedData.c">
+      <Filter>Library\Zydis\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\mfd-library\Zydis\src\String.c">
+      <Filter>Library\Zydis\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\mfd-library\Zydis\src\Utils.c">
+      <Filter>Library\Zydis\src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\mfd-library\Zydis\src\Zydis.c">
+      <Filter>Library\Zydis\src</Filter>
+    </ClCompile>
+    <ClCompile Include="mfd_disassemble.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\mfd-library\Zydis\src\Generated\AccessedFlags.inc">
+      <Filter>Library\Zydis\src\Generated</Filter>
+    </None>
+    <None Include="..\mfd-library\Zydis\src\Generated\DecoderTables.inc">
+      <Filter>Library\Zydis\src\Generated</Filter>
+    </None>
+    <None Include="..\mfd-library\Zydis\src\Generated\EncodableInstructions.inc">
+      <Filter>Library\Zydis\src\Generated</Filter>
+    </None>
+    <None Include="..\mfd-library\Zydis\src\Generated\EnumInstructionCategory.inc">
+      <Filter>Library\Zydis\src\Generated</Filter>
+    </None>
+    <None Include="..\mfd-library\Zydis\src\Generated\EnumISAExt.inc">
+      <Filter>Library\Zydis\src\Generated</Filter>
+    </None>
+    <None Include="..\mfd-library\Zydis\src\Generated\EnumISASet.inc">
+      <Filter>Library\Zydis\src\Generated</Filter>
+    </None>
+    <None Include="..\mfd-library\Zydis\src\Generated\EnumMnemonic.inc">
+      <Filter>Library\Zydis\src\Generated</Filter>
+    </None>
+    <None Include="..\mfd-library\Zydis\src\Generated\EnumRegister.inc">
+      <Filter>Library\Zydis\src\Generated</Filter>
+    </None>
+    <None Include="..\mfd-library\Zydis\src\Generated\InstructionDefinitions.inc">
+      <Filter>Library\Zydis\src\Generated</Filter>
+    </None>
+    <None Include="..\mfd-library\Zydis\src\Generated\InstructionEncodings.inc">
+      <Filter>Library\Zydis\src\Generated</Filter>
+    </None>
+    <None Include="..\mfd-library\Zydis\src\Generated\OperandDefinitions.inc">
+      <Filter>Library\Zydis\src\Generated</Filter>
+    </None>
   </ItemGroup>
 </Project>
